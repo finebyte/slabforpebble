@@ -38,6 +38,8 @@ src/js/src/main.js
 
 var accessToken = 'xoxp-4851112196-4852600748-4881601620-a7048f';
 var channels = [];
+var groups = [];
+var ims = [];
 
 Pebble.addEventListener('ready', function () {
   rtmStart();
@@ -65,9 +67,9 @@ function rtmStart() {
       if (!res.body) {
         return console.log('Could not get a valid response from Slack');
       }
-      // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-      channels = _.where(res.body.channels, { is_member: true });
-      // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+      channels = _.map(res.body.channels, Channel.create);
+      groups = _.map(res.body.groups, Group.create);
+      ims = _.map(res.body.ims, Im.create);
       sendInitialState();
       rtmConnect(res.body.url);
     });
@@ -80,16 +82,18 @@ function rtmConnect(url) {
   };
 }
 
-function serialiseChannel(channel) {
-  // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-  return [channel.id, channel.name, channel.unread_count_display].join('^');
-  // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-}
-
 function sendInitialState() {
   MessageQueue.sendAppMessage({
     op: 'CHANNELS',
-    data: _.map(channels, serialiseChannel).join('^')
+    data: Channel.serialize(channels)
+  }, ack, nack);
+  MessageQueue.sendAppMessage({
+    op: 'GROUPS',
+    data: Group.serialize(groups)
+  }, ack, nack);
+  MessageQueue.sendAppMessage({
+    op: 'IMS',
+    data: Im.serialize(ims)
   }, ack, nack);
 }
 
@@ -100,3 +104,78 @@ function ack() {
 function nack() {
   console.log('NACK!');
 }
+
+function Channel(data) {
+  this.data = data;
+}
+
+Channel.create = function (data) {
+  return new Channel(data);
+};
+
+Channel.serialize = function (channels) {
+  var filteredChannels = _.filter(channels, 'data.is_member');
+  var serializedChannels = _.invoke(filteredChannels, 'serialize');
+  serializedChannels.unshift(filteredChannels.length);
+  return serializedChannels.join('^');
+};
+
+Channel.prototype.serialize = function () {
+  return [
+    this.data.id,
+    this.data.name,
+    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+    this.data.unread_count_display
+    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+  ].join('^');
+};
+
+function Group(data) {
+  this.data = data;
+}
+
+Group.create = function (data) {
+  return new Group(data);
+};
+
+Group.serialize = function (groups) {
+  var filteredGroups = _.reject(groups, 'data.is_archived');
+  var serializedGroups = _.invoke(filteredGroups, 'serialize');
+  serializedGroups.unshift(filteredGroups.length);
+  return serializedGroups.join('^');
+};
+
+Group.prototype.serialize = function () {
+  return [
+    this.data.id,
+    this.data.name,
+    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+    this.data.unread_count_display
+    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+  ].join('^');
+};
+
+function Im(data) {
+  this.data = data;
+}
+
+Im.create = function (data) {
+  return new Im(data);
+};
+
+Im.serialize = function (ims) {
+  var filteredIms = _.filter(ims, 'data.is_open');
+  var serializedIms = _.invoke(filteredIms, 'serialize');
+  serializedIms.unshift(filteredIms.length);
+  return serializedIms.join('^');
+};
+
+Im.prototype.serialize = function () {
+  return [
+    this.data.id,
+    this.data.user, // TODO: Look this user up from the list of users.
+    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+    this.data.unread_count
+    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+  ].join('^');
+};
