@@ -40,6 +40,7 @@ var accessToken = 'xoxp-4851112196-4852600748-4881601620-a7048f';
 var channels = [];
 var groups = [];
 var ims = [];
+var users = [];
 
 Pebble.addEventListener('ready', function () {
   rtmStart();
@@ -70,6 +71,7 @@ function rtmStart() {
       channels = _.map(res.body.channels, Channel.create);
       groups = _.map(res.body.groups, Group.create);
       ims = _.map(res.body.ims, Im.create);
+      users = res.body.users;
       sendInitialState();
       rtmConnect(res.body.url);
     });
@@ -173,7 +175,7 @@ Im.serialize = function (ims) {
 Im.prototype.serialize = function () {
   return [
     this.data.id,
-    this.data.user, // TODO: Look this user up from the list of users.
+    _.findWhere(users, { id: this.data.user }).name,
     // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
     this.data.unread_count
     // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
