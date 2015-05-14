@@ -1,0 +1,23 @@
+{
+  "name": "slab-for-pebble",
+  "version": "1.0.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/finebyte/slabforpebble.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/finebyte/slabforpebble/issues"
+  },
+  "homepage": "https://github.com/finebyte/slabforpebble",
+  "devDependencies": {
+    "jscs": "^1.13.1",
+    "jshint": "^2.7.0",
+    "jshint-stylish-ex": "^0.2.0",
+    "uglifyjs": "^2.4.10",
+    "jscs-stylish": "^0.3.1"
+  },
+  "dependencies": {
+  }
+}
