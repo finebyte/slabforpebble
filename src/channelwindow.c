@@ -12,6 +12,7 @@
 typedef struct  {
 	char * id;
 	char * name;
+	char * unread_msg;
 	int unread;
 } chan_info;
 
@@ -53,7 +54,7 @@ static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t secti
 // This is the menu item draw callback where you specify what each item should look like
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
 	// Determine which section we're going to draw in
-	menu_cell_basic_draw(ctx, cell_layer, channels[cell_index->section].chans[cell_index->row].name, channels[cell_index->section].chans[cell_index->row].id, NULL);
+	menu_cell_basic_draw(ctx, cell_layer, channels[cell_index->section].chans[cell_index->row].name, channels[cell_index->section].chans[cell_index->row].unread_msg, NULL);
 }
 
 // Here we capture when a user selects a menu item
@@ -171,6 +172,8 @@ void addChannels(char * v, int id) {
 			channels[id].chans[i].name = strdup(tok);
 			tok=strtok(NULL,"^");
 			channels[id].chans[i].unread = atoi(tok);
+			channels[id].chans[i].unread_msg = malloc(20);
+			snprintf(channels[id].chans[i].unread_msg,20,"%d unread", channels[id].chans[i].unread);
 			tok=strtok(NULL,"^");
 			i++;
 		}

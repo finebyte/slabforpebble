@@ -9,8 +9,8 @@
 #define CHANNELWINDOW_H_
 
 #define CHANNELS 0
-#define DM 1
-#define GROUPS 2
+#define DM 2
+#define GROUPS 1
 
 void	addChannels(char *v, int i);
 void	channelwindow_create();
