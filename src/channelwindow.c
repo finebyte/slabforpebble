@@ -60,7 +60,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %d " , channels[cell_index->section].chans[cell_index->row].name , channels[cell_index->section].chans[cell_index->row].id, channels[cell_index->section].chans[cell_index->row].unread);
 	char msg[100];
-	snprintf(msg,100,"CHANNEL\n%s", channels[cell_index->section].chans[cell_index->row].name , channels[cell_index->section].chans[cell_index->row].id);
+	snprintf(msg,100,"CHANNEL\n%s", channels[cell_index->section].chans[cell_index->row].id);
 	sendCommand("MESSAGES",msg);
 }
 
