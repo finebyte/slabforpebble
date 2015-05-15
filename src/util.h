@@ -13,5 +13,6 @@ char * strtok(char *s, const char *delim);
 char * strtok_r(char *s, const char *delim, char **last);
 char * strdup (const char *s);
 
+#define SETTING_DELIMITER 127
 
 #endif /* UTIL_H_ */

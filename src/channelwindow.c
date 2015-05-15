@@ -29,14 +29,17 @@ static TextLayer  * watchInfo;
 
 chan_group channels[3];
 
+char * sectionTitles[]={"Channels", "Groups", "DM" };
+
+
 void sendCommand(char * op, char * data) {
-APP_LOG(APP_LOG_LEVEL_INFO,"tx %s %s", op, data);
 	DictionaryIterator* iterout;
 	app_message_outbox_begin(&iterout);
 	dict_write_cstring(iterout, 0, op);
 	dict_write_cstring(iterout, 1,data);
 	dict_write_end(iterout);
 	app_message_outbox_send();
+	APP_LOG(APP_LOG_LEVEL_INFO,"tx %s %s", op, data);
 }
 
 
@@ -60,8 +63,8 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 // Here we capture when a user selects a menu item
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %d " , channels[cell_index->section].chans[cell_index->row].name , channels[cell_index->section].chans[cell_index->row].id, channels[cell_index->section].chans[cell_index->row].unread);
-	char msg[100];
-	snprintf(msg,100,"CHANNEL\n%s", channels[cell_index->section].chans[cell_index->row].id);
+	static char msg[100];
+	snprintf(msg,100,"CHANNEL%c%s",0x7f, channels[cell_index->section].chans[cell_index->row].id);
 	sendCommand("MESSAGES",msg);
 }
 
@@ -70,21 +73,7 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
  }
 
  void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
-		switch(section_index) {
-			case CHANNELS:
-				menu_cell_basic_header_draw(ctx,cell_layer,"Channels");
-				break;
-			case DM:
-				menu_cell_basic_header_draw(ctx,cell_layer,"DM");
-				break;
-			case GROUPS:
-				menu_cell_basic_header_draw(ctx,cell_layer,"Groups");
-				break;
-			default:
-				menu_cell_basic_header_draw(ctx,cell_layer,"Groovy");
-				break;
-		}
-
+		menu_cell_basic_header_draw(ctx,cell_layer,sectionTitles[section_index]);
  }
 
 // This initializes the menu upon window load
@@ -149,32 +138,34 @@ void channelwindow_create() {
 	}
 }
 
+char SEP[]={(char)0x7f, (char)0x00};
+
 
 void addChannels(char * v, int id) {
 
 	char * m=strdup(v);
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"addChannels %s", m);
 	if (v!=NULL) {
-		char * tok = strtok(v,"^");
+		char * tok = strtok(v,SEP);
 		if (tok!=NULL) {
 			channels[id].num = atoi(tok);
 			APP_LOG(APP_LOG_LEVEL_DEBUG,"numchans %d", channels[id].num);
 			channels[id].chans = malloc (sizeof(chan_info) * channels[id].num);
 		}
 		uint8_t i = 0;
-		tok=strtok(NULL,"^");
+		tok=strtok(NULL,SEP);
 		APP_LOG(APP_LOG_LEVEL_DEBUG,"next chan id %s", tok);
 		// assuming correct formed triples...
 		while (tok!=NULL) {
 			APP_LOG(APP_LOG_LEVEL_DEBUG,"next chan id %s", tok);
 			channels[id].chans[i].id = strdup(tok);
-			tok=strtok(NULL,"^");
+			tok=strtok(NULL,SEP);
 			channels[id].chans[i].name = strdup(tok);
-			tok=strtok(NULL,"^");
+			tok=strtok(NULL,SEP);
 			channels[id].chans[i].unread = atoi(tok);
 			channels[id].chans[i].unread_msg = malloc(20);
 			snprintf(channels[id].chans[i].unread_msg,20,"%d unread", channels[id].chans[i].unread);
-			tok=strtok(NULL,"^");
+			tok=strtok(NULL,SEP);
 			i++;
 		}
 	}
