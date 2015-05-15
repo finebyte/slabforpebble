@@ -42,7 +42,7 @@ src/js/src/main.js
 /* global Im */
 /* global Users */
 
-var accessToken = 'xoxp-4851112196-4852600748-4881601620-a7048f';
+var accessToken = '';
 var channels = [];
 var groups = [];
 var ims = [];
