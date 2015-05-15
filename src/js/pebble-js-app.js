@@ -7442,7 +7442,7 @@ Group.serialize = function(groups) {
     var filteredGroups = _.reject(groups, "data.is_archived");
     var serializedGroups = _.invoke(filteredGroups, "serialize");
     serializedGroups.unshift(filteredGroups.length);
-    return serializedGroups.join("^");
+    return serializedGroups.join(DELIM);
 };
 
 Group.prototype.serialize = function() {
@@ -7461,7 +7461,7 @@ Channel.serialize = function(channels) {
     var filteredChannels = _.filter(channels, "data.is_member");
     var serializedChannels = _.invoke(filteredChannels, "serialize");
     serializedChannels.unshift(filteredChannels.length);
-    return serializedChannels.join("^");
+    return serializedChannels.join(DELIM);
 };
 
 Channel.prototype.serialize = function() {
@@ -7480,7 +7480,7 @@ Im.serialize = function(ims) {
     var filteredIms = _.filter(ims, "data.is_open");
     var serializedIms = _.invoke(filteredIms, "serialize");
     serializedIms.unshift(filteredIms.length);
-    return serializedIms.join("^");
+    return serializedIms.join(DELIM);
 };
 
 Im.prototype.serialize = function() {

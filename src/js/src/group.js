@@ -1,4 +1,5 @@
 /* global _ */
+/* global DELIM */
 
 function Group(data) {
   this.data = data;
@@ -12,7 +13,7 @@ Group.serialize = function (groups) {
   var filteredGroups = _.reject(groups, 'data.is_archived');
   var serializedGroups = _.invoke(filteredGroups, 'serialize');
   serializedGroups.unshift(filteredGroups.length);
-  return serializedGroups.join('^');
+  return serializedGroups.join(DELIM);
 };
 
 Group.prototype.serialize = function () {

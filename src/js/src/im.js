@@ -1,5 +1,6 @@
 /* global _ */
 /* global Users */
+/* global DELIM */
 
 function Im(data) {
   this.data = data;
@@ -13,7 +14,7 @@ Im.serialize = function (ims) {
   var filteredIms = _.filter(ims, 'data.is_open');
   var serializedIms = _.invoke(filteredIms, 'serialize');
   serializedIms.unshift(filteredIms.length);
-  return serializedIms.join('^');
+  return serializedIms.join(DELIM);
 };
 
 Im.prototype.serialize = function () {

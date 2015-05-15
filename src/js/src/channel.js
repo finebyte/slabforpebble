@@ -1,4 +1,5 @@
 /* global _ */
+/* global DELIM */
 
 function Channel(data) {
   this.data = data;
@@ -12,7 +13,7 @@ Channel.serialize = function (channels) {
   var filteredChannels = _.filter(channels, 'data.is_member');
   var serializedChannels = _.invoke(filteredChannels, 'serialize');
   serializedChannels.unshift(filteredChannels.length);
-  return serializedChannels.join('^');
+  return serializedChannels.join(DELIM);
 };
 
 Channel.prototype.serialize = function () {
