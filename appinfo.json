@@ -18,5 +18,8 @@
   "resources": {
     "media": [
     ]
+  },
+  "settings": {
+    "delimiter": 127
   }
 }

@@ -55,5 +55,8 @@ var AppInfo = {
   "resources": {
     "media": [
     ]
+  },
+  "settings": {
+    "delimiter": 127
   }
 };

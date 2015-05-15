@@ -5,7 +5,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright © 2015 James Turck & Matthew Tole 
+# Copyright © 2015 James Turck & Matthew Tole
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -68,12 +68,17 @@ def build(ctx):
         '../src/js/libs/gcolor.js',
         '../src/js/libs/store.js',
         '../src/js/libs/sprintf.js',
-        '../src/js/libs/lodash.js'
+        '../src/js/libs/lodash.js',
+        '../src/js/libs/moment.js'
     ]
 
     js_sources = [
         '../src/js/src/generated/appinfo.js',
         '../src/js/src/hacks.js',
+        '../src/js/src/users.js',
+        '../src/js/src/group.js',
+        '../src/js/src/channel.js',
+        '../src/js/src/im.js',
         '../src/js/src/main.js'
     ]
     built_js = '../src/js/pebble-js-app.js'
@@ -122,6 +127,9 @@ def generate_appinfo_h(task):
     for key in appinfo['appKeys']:
         f.write('#define APP_KEY_{0} {1}\n'.format(key.upper(),
                                                    appinfo['appKeys'][key]))
+    for key in appinfo['settings']:
+        f.write('#define SETTING_{0} {1}\n'.format(key.upper(),
+                                                   appinfo['settings'][key]))
     f.close()
 
 
@@ -191,7 +199,7 @@ def concatenate_js(task):
 
 
 def make_test(task):
-    make()
+    make("test")
 
 
 def js_jshint(task):
@@ -204,10 +212,10 @@ def js_jshint(task):
 
 def js_jscs(task):
     task.ext_out = '.js'
-    inputs = (input.abspath() for input in task.inputs)
     make("jscs")
 
 
 def js_karma(task):
     task.ext_out = '.js'
+    karma = sh.Command("./node_modules/.bin/karma")
     karma("start", single_run=True, reporters="dots")

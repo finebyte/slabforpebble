@@ -21,7 +21,7 @@ var MessageQueue = (function () {
 
   function sendAppMessage(message, ack, nack) {
 
-    console.log(JSON.stringify(message, null, 2));
+    // console.log(JSON.stringify(message, null, 2));
 
     if (! isValidMessage(message)) {
       return false;

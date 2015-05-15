@@ -39,3 +39,4 @@ src/generated/appinfo.h
 #define UUID "5a91dd88-d877-474d-8c96-d5d03157fc80"
 #define APP_KEY_DATA 1
 #define APP_KEY_OP 0
+#define SETTING_DELIMITER 127

@@ -33,14 +33,20 @@ src/js/src/main.js
 */
 
 /* global superagent */
+/* global moment */
 /* global MessageQueue */
+/* global AppInfo */
 /* global _ */
+/* global Channel */
+/* global Group */
+/* global Im */
+/* global Users */
 
 var accessToken = 'xoxp-4851112196-4852600748-4881601620-a7048f';
 var channels = [];
 var groups = [];
 var ims = [];
-var users = [];
+var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 
 Pebble.addEventListener('ready', function () {
   rtmStart();
@@ -53,6 +59,34 @@ Pebble.addEventListener('showConfiguration', function () {
 Pebble.addEventListener('webviewclosed', function (event) {
   accessToken = event.response;
   rtmStart();
+});
+
+Pebble.addEventListener('appmessage', function (event) {
+  var op = event.payload.op;
+  var data = event.payload.data;
+  var dataArray = data.split(String.fromCharCode(AppInfo.settings.delimiter));
+
+  switch (op) {
+    case 'MESSAGES': {
+      switch (dataArray[0]) {
+        case 'CHANNEL':
+          fetchChannelMessages(dataArray[1], function (err, messages) {
+            if (err) {
+              return console.log(err);
+            }
+            sendMessages(dataArray[1], messages, function (err) {
+              if (err) {
+                return console.log(err);
+              }
+            });
+          });
+          break;
+      }
+      break;
+    }
+    default:
+    // Pass!
+  }
 });
 
 function rtmStart() {
@@ -71,7 +105,7 @@ function rtmStart() {
       channels = _.map(res.body.channels, Channel.create);
       groups = _.map(res.body.groups, Group.create);
       ims = _.map(res.body.ims, Im.create);
-      users = res.body.users;
+      Users.load(res.body.users);
       sendInitialState();
       rtmConnect(res.body.url);
     });
@@ -80,8 +114,24 @@ function rtmStart() {
 function rtmConnect(url) {
   var rtmSocket = new WebSocket(url);
   rtmSocket.onmessage = function (event) {
-    console.log(event.data);
+    var data = JSON.parse(event.data);
+    switch (data.type) {
+      case 'message':
+        rtmMessage(data);
+        break;
+      case 'user_typing':
+        // Fall through here.
+      case 'presence_change':
+        // Ignore these messages because they're boring.
+        break;
+      default:
+      // console.log(JSON.stringify(data));
+    }
   };
+}
+
+function rtmMessage() {
+  // console.log(JSON.stringify(data, null, 2));
 }
 
 function sendInitialState() {
@@ -99,6 +149,38 @@ function sendInitialState() {
   }, ack, nack);
 }
 
+function fetchChannelMessages(id, callback) {
+  superagent.get('https://slack.com/api/channels.history').query({
+    token: accessToken,
+    channel: id
+  }).end(function (err, res) {
+    if (err) {
+      return callback(err);
+    }
+    if (!res.body.ok) {
+      return callback(new Error('Failed to get channel messages'));
+    }
+    return callback(null, res.body.messages);
+  });
+}
+
+function sendMessages(id, messages, callback) {
+  var messagesResponse = [id, Math.min(10, messages.length)];
+  messages.slice(0, 10).forEach(function (message) {
+    var user = Users.findById(message.user);
+    messagesResponse.push(user ? user.name : message.user);
+    messagesResponse.push(
+      moment(parseInt(message.ts, 10)).format('HH:mm'));
+    messagesResponse.push(message.text);
+  });
+  var payload = { op: 'MESSAGES', data: messagesResponse.join(DELIM) };
+  MessageQueue.sendAppMessage(payload, function () {
+    callback();
+  }, function () {
+    callback(new Error('NACK!'));
+  });
+}
+
 function ack() {
   console.log('ACK!');
 }
@@ -106,78 +188,3 @@ function ack() {
 function nack() {
   console.log('NACK!');
 }
-
-function Channel(data) {
-  this.data = data;
-}
-
-Channel.create = function (data) {
-  return new Channel(data);
-};
-
-Channel.serialize = function (channels) {
-  var filteredChannels = _.filter(channels, 'data.is_member');
-  var serializedChannels = _.invoke(filteredChannels, 'serialize');
-  serializedChannels.unshift(filteredChannels.length);
-  return serializedChannels.join('^');
-};
-
-Channel.prototype.serialize = function () {
-  return [
-    this.data.id,
-    this.data.name,
-    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-    this.data.unread_count_display
-    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-  ].join('^');
-};
-
-function Group(data) {
-  this.data = data;
-}
-
-Group.create = function (data) {
-  return new Group(data);
-};
-
-Group.serialize = function (groups) {
-  var filteredGroups = _.reject(groups, 'data.is_archived');
-  var serializedGroups = _.invoke(filteredGroups, 'serialize');
-  serializedGroups.unshift(filteredGroups.length);
-  return serializedGroups.join('^');
-};
-
-Group.prototype.serialize = function () {
-  return [
-    this.data.id,
-    this.data.name,
-    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-    this.data.unread_count_display
-    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-  ].join('^');
-};
-
-function Im(data) {
-  this.data = data;
-}
-
-Im.create = function (data) {
-  return new Im(data);
-};
-
-Im.serialize = function (ims) {
-  var filteredIms = _.filter(ims, 'data.is_open');
-  var serializedIms = _.invoke(filteredIms, 'serialize');
-  serializedIms.unshift(filteredIms.length);
-  return serializedIms.join('^');
-};
-
-Im.prototype.serialize = function () {
-  return [
-    this.data.id,
-    _.findWhere(users, { id: this.data.user }).name,
-    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-    this.data.unread_count
-    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-  ].join('^');
-};
