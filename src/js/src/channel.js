@@ -23,5 +23,5 @@ Channel.prototype.serialize = function () {
     // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
     this.data.unread_count_display
     // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-  ].join('^');
+  ].join(DELIM);
 };

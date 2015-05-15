@@ -24,5 +24,5 @@ Im.prototype.serialize = function () {
     // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
     this.data.unread_count
     // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-  ].join('^');
+  ].join(DELIM);
 };
