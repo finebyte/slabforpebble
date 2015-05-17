@@ -6,3 +6,4 @@ node_modules/
 src/generated/
 src/js/src/generated/
 src/js/pebble-js-app.js
+src/js/src/debug.js

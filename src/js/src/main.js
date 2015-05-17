@@ -43,6 +43,7 @@ src/js/src/main.js
 /* global Im */
 /* global Users */
 /* global Message */
+/* global DEBUG_ACCESS_TOKEN */
 
 var channels = [];
 var groups = [];
@@ -50,7 +51,9 @@ var ims = [];
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 
 Pebble.addEventListener('ready', function () {
-  Slack.setAccessToken('xoxp-4851112196-4852600748-4943065817-635f17');
+  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
+    Slack.setAccessToken(DEBUG_ACCESS_TOKEN);
+  }
   rtmStart();
 });
 

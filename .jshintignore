@@ -1,2 +1,3 @@
 src/js/src/generated/appinfo.js
 src/js/pebble-js-app.js
+src/js/src/debug.js

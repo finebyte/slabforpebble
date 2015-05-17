@@ -1,5 +1,5 @@
 {
-	"excludeFiles": ["src/js/src/generated/**"],
+	"excludeFiles": ["src/js/src/generated/**", "src/js/src/debug.js"],
 	"preset": "airbnb",
 	"disallowSpacesInFunctionExpression": null,
 	"disallowSpacesInAnonymousFunctionExpression": null,

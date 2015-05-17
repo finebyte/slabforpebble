@@ -85,6 +85,8 @@ def build(ctx):
         '../src/js/src/slack.js',
         '../src/js/src/main.js'
     ]
+    if os.path.isfile('src/js/src/debug.js'):
+        js_sources.append('../src/js/src/debug.js');
 
     built_js = '../src/js/pebble-js-app.js'
 
