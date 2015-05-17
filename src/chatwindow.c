@@ -8,8 +8,9 @@
 #include "pebble.h"
 #include "util.h"
 #include "channelwindow.h"
+#include "replywindow.h"
 
-
+chan_info * myChan;
 
 typedef struct  {
 	char * name;
@@ -76,9 +77,7 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 // Here we capture when a user selects a menu item
 void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].chans[cell_index->row].name , chats[cell_index->section].chans[cell_index->row].msg, chats[cell_index->section].chans[cell_index->row].time);
-	//	static char msg[100];
-	//	snprintf(msg,100,"CHANNEL%c%s",0x7f, chats[cell_index->section].chans[cell_index->row].id);
-	//	sendCommand("MESSAGES",msg);
+	replywindow_create(myChan);
 }
 
 int16_t chat_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
@@ -140,10 +139,10 @@ void chat_unload(Window *w) {
 
 
 
-
 void chatwindow_create(chan_info * chan) {
 //	static char msg[100];
 //	snprintf(msg,100,"CHANNEL%c%s",0x7f, chan->id);
+	myChan = chan;
 	sendCommand("MESSAGES",chan->id);
 	chatTitle=chan->name;
 
