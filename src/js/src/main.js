@@ -154,7 +154,7 @@ function fetchChannelMessages(id, callback) {
     }
     console.log(sprintf('Fetched %d messages for the channel %s',
       data.messages.length, id));
-    return callback(null, data.messages.map(Message.create).reverse());
+    return callback(null, data.messages.map(Message.create));
   });
 }
 
