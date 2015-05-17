@@ -1,6 +1,7 @@
 /* global moment */
 /* global async */
 /* global Users */
+/* global EmojiMap */
 /* global DELIM */
 
 function Message(data) {
@@ -44,6 +45,14 @@ Message.prototype.getTime = function () {
 
 Message.prototype.getText = function (callback) {
   var text = this.data.text;
+
+  var emojiMatches = text.match(/(\:[a-z\_]+\:)/g);
+  if (emojiMatches) {
+    emojiMatches.forEach(function (match) {
+      text = processEmoji(text, match);
+    });
+  }
+
   var matches = /(<.+>)/g.exec(text);
   if (!matches) {
     return callback(null, text);
@@ -66,7 +75,9 @@ Message.prototype.getText = function (callback) {
         });
         break;
       default:
-        text = text.replace(match, match.substr(1, match.length - 2));
+        text = '\uD83D\uDCA9';
+        console.log(findSurrogatePair(0x1f065));
+        // text = text.replace(match, match.substr(1, match.length - 2));
         return callback();
     }
   },
@@ -96,4 +107,20 @@ function processChannelReference(text, match, callback) {
   var channelId = match.substr(2, match.length - 3);
   console.log('Processing channel reference for: ' + channelId);
   return callback(null, text);
+}
+
+function findSurrogatePair(point) {
+  // assumes point > 0xffff
+  var offset = point - 0x10000;
+  var lead = 0xd800 + (offset >> 10);
+  var trail = 0xdc00 + (offset & 0x3ff);
+  return String.fromCharCode(lead) + String.fromCharCode(trail);
+}
+
+function processEmoji(text, code) {
+  var emoji = EmojiMap[code.substr(1, code.length - 2)];
+  if (emoji) {
+    text = text.replace(code, findSurrogatePair(emoji));
+  }
+  return text;
 }

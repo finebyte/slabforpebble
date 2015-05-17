@@ -229,7 +229,7 @@ function idType(id) {
   switch (id[0]) {
     case 'G':
       return 'GROUP';
-    case 'I':
+    case 'D':
       return 'IM';
     case 'C':
       return 'CHANNEL';
