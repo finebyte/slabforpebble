@@ -69,6 +69,7 @@ def build(ctx):
         '../src/js/libs/store.js',
         '../src/js/libs/sprintf.js',
         '../src/js/libs/lodash.js',
+        '../src/js/libs/async.js',
         '../src/js/libs/moment.js'
     ]
 
@@ -79,8 +80,11 @@ def build(ctx):
         '../src/js/src/group.js',
         '../src/js/src/channel.js',
         '../src/js/src/im.js',
+        '../src/js/src/message.js',
+        '../src/js/src/slack.js',
         '../src/js/src/main.js'
     ]
+
     built_js = '../src/js/pebble-js-app.js'
 
     # Generate appinfo.js

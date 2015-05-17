@@ -32,8 +32,9 @@ src/js/src/main.js
 
 */
 
-/* global superagent */
-/* global moment */
+/* global Slack */
+/* global async */
+/* global sprintf */
 /* global MessageQueue */
 /* global AppInfo */
 /* global _ */
@@ -41,14 +42,15 @@ src/js/src/main.js
 /* global Group */
 /* global Im */
 /* global Users */
+/* global Message */
 
-var accessToken = '';
 var channels = [];
 var groups = [];
 var ims = [];
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 
 Pebble.addEventListener('ready', function () {
+  Slack.setAccessToken('xoxp-4851112196-4852600748-4908159572-9f875b');
   rtmStart();
 });
 
@@ -57,7 +59,10 @@ Pebble.addEventListener('showConfiguration', function () {
 });
 
 Pebble.addEventListener('webviewclosed', function (event) {
-  accessToken = event.response;
+  if (event.response === 'CANCELLED') {
+    return;
+  }
+  Slack.setAccessToken(event.response);
   rtmStart();
 });
 
@@ -90,25 +95,19 @@ Pebble.addEventListener('appmessage', function (event) {
 });
 
 function rtmStart() {
-  if (!accessToken) {
-    return;
-  }
-  superagent
-    .post('https://slack.com/api/rtm.start?token=' + accessToken)
-    .end(function (err, res) {
-      if (err) {
-        return console.log(err);
-      }
-      if (!res.body) {
-        return console.log('Could not get a valid response from Slack');
-      }
-      channels = _.map(res.body.channels, Channel.create);
-      groups = _.map(res.body.groups, Group.create);
-      ims = _.map(res.body.ims, Im.create);
-      Users.load(res.body.users);
-      sendInitialState();
-      rtmConnect(res.body.url);
-    });
+  Slack.post('rtm.start', {}, function (err, data) {
+    if (err) {
+      return console.log(err);
+    }
+    channels = _.map(data.channels, Channel.create);
+    groups = _.map(data.groups, Group.create);
+    ims = _.map(data.ims, Im.create);
+    Users.load(data.users);
+    sendInitialState();
+    if (window.WebSocket) {
+      rtmConnect(data.url);
+    }
+  });
 }
 
 function rtmConnect(url) {
@@ -150,35 +149,54 @@ function sendInitialState() {
 }
 
 function fetchChannelMessages(id, callback) {
-  superagent.get('https://slack.com/api/channels.history').query({
-    token: accessToken,
-    channel: id
-  }).end(function (err, res) {
+  Slack.get('channels.history', { channel: id }, function (err, data) {
     if (err) {
       return callback(err);
     }
-    if (!res.body.ok) {
-      return callback(new Error('Failed to get channel messages'));
-    }
-    return callback(null, res.body.messages);
+    console.log(sprintf('Fetched %d messages for the channel %s',
+      data.messages.length, id));
+    return callback(null, data.messages.map(Message.create));
   });
 }
 
 function sendMessages(id, messages, callback) {
-  var messagesResponse = [id, Math.min(10, messages.length)];
-  messages.slice(0, 10).forEach(function (message) {
-    var user = Users.findById(message.user);
-    messagesResponse.push(user ? user.name : message.user);
-    messagesResponse.push(
-      moment(parseInt(message.ts, 10)).format('HH:mm'));
-    messagesResponse.push(message.text);
-  });
-  var payload = { op: 'MESSAGES', data: messagesResponse.join(DELIM) };
-  MessageQueue.sendAppMessage(payload, function () {
-    callback();
-  }, function () {
-    callback(new Error('NACK!'));
-  });
+  // TODO: Don't hardcode this value.
+  var maxMessageLength = 1000;
+  var messageData = '';
+  var messageDataFull = false;
+  var m = 0;
+
+  async.whilst(
+    function () { return !messageDataFull; },
+    function (callback) {
+      var message = messages[m];
+      message.serialize(function (err, str) {
+        if ((messageData + str).length <= maxMessageLength) {
+          messageData += DELIM + str;
+          m += 1;
+        }
+        else {
+          messageDataFull = true;
+        }
+        return callback();
+      });
+    },
+    function (err) {
+      if (err) {
+        // TODO: Send this error message somewhere!
+        console.log(err);
+        return;
+      }
+      var payload = {
+        op: 'MESSAGES',
+        data: id + DELIM + m + DELIM + messageData
+      };
+      MessageQueue.sendAppMessage(payload, function () {
+        callback();
+      }, function () {
+        callback(new Error('NACK!'));
+      });
+    });
 }
 
 function ack() {
