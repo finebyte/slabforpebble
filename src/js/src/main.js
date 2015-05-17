@@ -50,6 +50,7 @@ var ims = [];
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 
 Pebble.addEventListener('ready', function () {
+  Slack.setAccessToken('xoxp-4851112196-4852600748-4943065817-635f17');
   rtmStart();
 });
 
@@ -227,7 +228,7 @@ function sendMessages(id, messages, callback) {
 
 function postMessage(id, message, callback) {
   // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-  Slack.post({
+  Slack.post('chat.postMessage', {
     channel: id,
     text: message,
     as_user: true
