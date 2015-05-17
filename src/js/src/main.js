@@ -50,7 +50,6 @@ var ims = [];
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 
 Pebble.addEventListener('ready', function () {
-  Slack.setAccessToken('xoxp-4851112196-4878239971-4930154863-221ae6');
   rtmStart();
 });
 
@@ -155,7 +154,7 @@ function fetchChannelMessages(id, callback) {
     }
     console.log(sprintf('Fetched %d messages for the channel %s',
       data.messages.length, id));
-    return callback(null, data.messages.map(Message.create));
+    return callback(null, data.messages.map(Message.create).reverse());
   });
 }
 
@@ -165,15 +164,23 @@ function sendMessages(id, messages, callback) {
   var messageData = '';
   var messageDataFull = false;
   var m = 0;
+  var numMessages = 0;
 
   async.whilst(
-    function () { return !messageDataFull; },
+    function () { return (m < messages.length - 1) && !messageDataFull; },
     function (callback) {
       var message = messages[m];
+      m += 1;
+      if (message.data.subtype) {
+        console.log(
+          sprintf('Skipping message with subtype %s', message.data.subtype));
+        return callback();
+      }
+      console.log(JSON.stringify(message));
       message.serialize(function (err, str) {
         if ((messageData + str).length <= maxMessageLength) {
           messageData += DELIM + str;
-          m += 1;
+          numMessages += 1;
         }
         else {
           messageDataFull = true;
@@ -189,8 +196,9 @@ function sendMessages(id, messages, callback) {
       }
       var payload = {
         op: 'MESSAGES',
-        data: id + DELIM + m + DELIM + messageData
+        data: id + DELIM + numMessages + DELIM + messageData
       };
+      console.log(payload.data);
       MessageQueue.sendAppMessage(payload, function () {
         callback();
       }, function () {
