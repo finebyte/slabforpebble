@@ -68,6 +68,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
 Pebble.addEventListener('appmessage', function (event) {
   var op = event.payload.op;
   var data = event.payload.data;
+  var dataArray = data.split(String.fromCharCode(AppInfo.settings.delimiter));
 
   switch (op) {
     case 'MESSAGES':
@@ -80,6 +81,13 @@ Pebble.addEventListener('appmessage', function (event) {
             return console.log(err);
           }
         });
+      });
+      break;
+    case 'MESSAGE':
+      postMessage(dataArray[0], dataArray[1], function (err) {
+        if (err) {
+          return console.log(err);
+        }
       });
       break;
     default:
@@ -215,6 +223,16 @@ function sendMessages(id, messages, callback) {
         callback(new Error('NACK!'));
       });
     });
+}
+
+function postMessage(id, message, callback) {
+  // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+  Slack.post({
+    channel: id,
+    text: message,
+    as_user: true
+  }, callback);
+  // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
 }
 
 function ack() {
