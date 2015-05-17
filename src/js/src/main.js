@@ -68,26 +68,20 @@ Pebble.addEventListener('webviewclosed', function (event) {
 Pebble.addEventListener('appmessage', function (event) {
   var op = event.payload.op;
   var data = event.payload.data;
-  var dataArray = data.split(String.fromCharCode(AppInfo.settings.delimiter));
 
   switch (op) {
-    case 'MESSAGES': {
-      switch (dataArray[0]) {
-        case 'CHANNEL':
-          fetchChannelMessages(dataArray[1], function (err, messages) {
-            if (err) {
-              return console.log(err);
-            }
-            sendMessages(dataArray[1], messages, function (err) {
-              if (err) {
-                return console.log(err);
-              }
-            });
-          });
-          break;
-      }
+    case 'MESSAGES':
+      fetchMessages(data, function (err, messages) {
+        if (err) {
+          return console.log(err);
+        }
+        sendMessages(data, messages, function (err) {
+          if (err) {
+            return console.log(err);
+          }
+        });
+      });
       break;
-    }
     default:
     // Pass!
   }
@@ -147,12 +141,28 @@ function sendInitialState() {
   }, ack, nack);
 }
 
-function fetchChannelMessages(id, callback) {
-  Slack.get('channels.history', { channel: id }, function (err, data) {
+function fetchMessages(id, callback) {
+  var apiMethod;
+
+  switch (idType(id)) {
+    case 'CHANNEL':
+      apiMethod = 'channels.history';
+      break;
+    case 'GROUP':
+      apiMethod = 'groups.history';
+      break;
+    case 'IM':
+      apiMethod = 'im.history';
+      break;
+    default:
+      return callback(new Error(sprintf('Unknown type for id %s', id)));
+  }
+
+  Slack.get(apiMethod, { channel: id }, function (err, data) {
     if (err) {
       return callback(err);
     }
-    console.log(sprintf('Fetched %d messages for the channel %s',
+    console.log(sprintf('Fetched %d messages for %s',
       data.messages.length, id));
     return callback(null, data.messages.map(Message.create));
   });
@@ -213,4 +223,15 @@ function ack() {
 
 function nack() {
   console.log('NACK!');
+}
+
+function idType(id) {
+  switch (id[0]) {
+    case 'G':
+      return 'GROUP';
+    case 'I':
+      return 'IM';
+    case 'C':
+      return 'CHANNEL';
+  }
 }

@@ -66,7 +66,8 @@ Message.prototype.getText = function (callback) {
         });
         break;
       default:
-        return callback(new Error('Unhandled matchType: ' + matchType));
+        text = text.replace(match, match.substr(1, match.length - 2));
+        return callback();
     }
   },
   function (err) {
