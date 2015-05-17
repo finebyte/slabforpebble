@@ -50,6 +50,7 @@ var ims = [];
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 
 Pebble.addEventListener('ready', function () {
+  Slack.setAccessToken('xoxp-4851112196-4878239971-4930154863-221ae6');
   rtmStart();
 });
 
