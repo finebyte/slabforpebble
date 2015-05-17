@@ -27,7 +27,6 @@ typedef struct  {
 
 static Window *window=NULL;
 static MenuLayer *menu_layer;
-static TextLayer  * watchInfo;
 
 chat_group chats[1];
 
@@ -57,7 +56,7 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 	graphics_draw_text(ctx,
 			chats[cell_index->section].chans[cell_index->row].title,
-			fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
+			fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
 			b,
 			GTextOverflowModeFill,
 			GTextAlignmentLeft,
@@ -66,7 +65,7 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 	graphics_draw_text(ctx,
 			chats[cell_index->section].chans[cell_index->row].msg,
-			fonts_get_system_font(FONT_KEY_GOTHIC_14),
+			fonts_get_system_font(FONT_KEY_GOTHIC_18),
 			GRect(b.origin.x,b.origin.y+14,b.size.w,b.size.h),
 			GTextOverflowModeFill,
 			GTextAlignmentLeft,
@@ -90,16 +89,16 @@ int16_t chat_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_in
 
 	GSize s = graphics_text_layout_get_content_size(
 			chats[cell_index->section].chans[cell_index->row].msg,
-			fonts_get_system_font(FONT_KEY_GOTHIC_14),
+			fonts_get_system_font(FONT_KEY_GOTHIC_18),
 			GRect(0,0,144,168),
 			GTextOverflowModeFill,
 			GTextAlignmentLeft);
 
-	return s.h + 14 + 10;
+	return s.h + 18 + 10;
 }
 
 void chat_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
-	menu_cell_basic_header_draw(ctx,cell_layer,"ChatTitle");
+	menu_cell_basic_header_draw(ctx,cell_layer,chatTitle);
 }
 
 // This initializes the menu upon window load
@@ -132,33 +131,22 @@ void chat_disappear(Window *window) {
 	// Destroy the menu layer
 	layer_remove_from_parent(menu_layer_get_layer(menu_layer));
 	menu_layer_destroy(menu_layer);
-	text_layer_destroy(watchInfo);
 }
 
-void chat_unload(Window *window) {
+void chat_unload(Window *w) {
 	window_destroy(window);
+	window=NULL;
 }
 
 
 
 
 void chatwindow_create(chan_info * chan) {
+//	static char msg[100];
+//	snprintf(msg,100,"CHANNEL%c%s",0x7f, chan->id);
+	sendCommand("MESSAGES",chan->id);
+	chatTitle=chan->name;
 
-	//	window = window_create();
-	//#ifdef PBL_SDK_2
-	//	window_set_fullscreen(window,true);
-	//#endif
-	//
-	//	// Setup the window handlers
-	//	window_set_window_handlers(window, (WindowHandlers) {
-	//		.appear = &chat_load,
-	//		.disappear = &chat_disappear,
-	//		.unload = &chat_unload
-	//	});
-	static char msg[100];
-	snprintf(msg,100,"CHANNEL%c%s",0x7f, chan->id);
-	sendCommand("MESSAGES",msg);
-	//	window_stack_push(window,true);
 }
 
 void chatwindow_update() {
@@ -203,7 +191,7 @@ void addMessages(char * v, int id) {
 
 		if (tok!=NULL) {
 			chats[id].num = atoi(tok);
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"numchans %d", chats[id].num);
+			APP_LOG(APP_LOG_LEVEL_DEBUG,"num chats=%d", chats[id].num);
 			chats[id].chans = malloc (sizeof(chat_msg) * chats[id].num);
 		}
 
@@ -219,13 +207,10 @@ void addMessages(char * v, int id) {
 		//ygalanter13:43with some other modifications
 
 		while (tok!=NULL) {
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"next tok %s", tok);
 			chats[id].chans[i].name = strdup(tok);
 			tok=strtok(NULL,SEP);
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"next tok %s", tok);
 			chats[id].chans[i].time = strdup(tok);
 			tok=strtok(NULL,SEP);
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"next tok %s", tok);
 			chats[id].chans[i].msg = strdup(tok);
 			tok=strtok(NULL,SEP);
 			int title_len=strlen(chats[id].chans[i].name)+1+
@@ -234,6 +219,11 @@ void addMessages(char * v, int id) {
 			snprintf(chats[id].chans[i].title,title_len,"%s@%s",
 					chats[id].chans[i].name,
 					chats[id].chans[i].time);
+			APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
+					heap_bytes_free(),
+					i,
+					chats[id].chans[i].title,
+					chats[id].chans[i].msg);
 
 			i++;
 		}
