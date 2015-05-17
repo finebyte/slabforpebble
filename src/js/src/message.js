@@ -75,9 +75,7 @@ Message.prototype.getText = function (callback) {
         });
         break;
       default:
-        text = '\uD83D\uDCA9';
-        console.log(findSurrogatePair(0x1f065));
-        // text = text.replace(match, match.substr(1, match.length - 2));
+        text = text.replace(match, match.substr(1, match.length - 2));
         return callback();
     }
   },
