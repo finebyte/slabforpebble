@@ -17,12 +17,12 @@ Message.prototype.serialize = function (callback) {
     if (err) {
       return callback(err);
     }
-    _this.message.getText(function (err, text) {
+    _this.getText(function (err, text) {
       if (err) {
         return callback(err);
       }
       return callback(null, [
-        name, _this.getTime(), text
+        name, _this.getTime(), text.length ? text : ' '
       ].join(DELIM));
     });
   });
