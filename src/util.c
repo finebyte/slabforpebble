@@ -6,6 +6,20 @@
  */
 #include "pebble.h"
 
+
+
+void sendCommand(char * op, char * data) {
+	DictionaryIterator* iterout;
+	app_message_outbox_begin(&iterout);
+	dict_write_cstring(iterout, 0, op);
+	dict_write_cstring(iterout, 1,data);
+	dict_write_end(iterout);
+	app_message_outbox_send();
+	APP_LOG(APP_LOG_LEVEL_INFO,"tx %s %s", op, data);
+}
+
+
+
 char * strdup (const char *s)
 {
 	size_t len = strlen (s) + 1;

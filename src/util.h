@@ -12,6 +12,10 @@ TextLayer * new_text_layer(GRect frame, char* t, char *f, GTextAlignment a, GCol
 char * strtok(char *s, const char *delim);
 char * strtok_r(char *s, const char *delim, char **last);
 char * strdup (const char *s);
+void sendCommand(char * op, char * data);
+
+static char SEP[]={(char)0x7f, (char)0x00};
+
 
 #define SETTING_DELIMITER 127
 

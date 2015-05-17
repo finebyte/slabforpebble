@@ -15,7 +15,18 @@
 void	addChannels(char *v, int i);
 void	channelwindow_create();
 
+typedef struct  {
+	char * id;
+	char * name;
+	char * unread_msg;
+	int unread;
+} chan_info;
 
+
+typedef struct  {
+	uint8_t num;
+	chan_info * chans;
+} chan_group;
 
 
 #endif /* CHANNELWINDOW_H_ */

@@ -1,5 +1,6 @@
 #include <pebble.h>
 #include "channelwindow.h"
+#include "chatwindow.h"
 
 static Window *window;
 static TextLayer *text_layer;
@@ -96,13 +97,13 @@ void rcv(DictionaryIterator *received, void *context) {
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "IMS: NO IMS");
 			}
 		}
-		if (strcmp(op,"CONTENT")==0) {
+		if (strcmp(op,"MESSAGES")==0) {
 			t=dict_find(received,1); // data
 			if (t!=NULL) {
-//				addContent(t->value->cstring);
-//				channelwindow_create();
+				addMessages(t->value->cstring,0);
+				chatwindow_update();
 			} else {
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "CHANNELS: NO CHANNELS");
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "MESSAGES: NO MESSAGES");
 			}
 		}
 	}

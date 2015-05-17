@@ -8,19 +8,8 @@
 #include "pebble.h"
 #include "util.h"
 #include "channelwindow.h"
+#include "chatwindow.h"
 
-typedef struct  {
-	char * id;
-	char * name;
-	char * unread_msg;
-	int unread;
-} chan_info;
-
-
-typedef struct  {
-	uint8_t num;
-	chan_info * chans;
-} chan_group;
 
 
 static Window *window=NULL;
@@ -30,18 +19,6 @@ static TextLayer  * watchInfo;
 chan_group channels[3];
 
 char * sectionTitles[]={"Channels", "Groups", "DM" };
-
-
-void sendCommand(char * op, char * data) {
-	DictionaryIterator* iterout;
-	app_message_outbox_begin(&iterout);
-	dict_write_cstring(iterout, 0, op);
-	dict_write_cstring(iterout, 1,data);
-	dict_write_end(iterout);
-	app_message_outbox_send();
-	APP_LOG(APP_LOG_LEVEL_INFO,"tx %s %s", op, data);
-}
-
 
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
@@ -63,9 +40,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 // Here we capture when a user selects a menu item
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %d " , channels[cell_index->section].chans[cell_index->row].name , channels[cell_index->section].chans[cell_index->row].id, channels[cell_index->section].chans[cell_index->row].unread);
-	static char msg[100];
-	snprintf(msg,100,"CHANNEL%c%s",0x7f, channels[cell_index->section].chans[cell_index->row].id);
-	sendCommand("MESSAGES",msg);
+	chatwindow_create(&channels[cell_index->section].chans[cell_index->row]);
 }
 
  int16_t menu_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
@@ -138,7 +113,6 @@ void channelwindow_create() {
 	}
 }
 
-char SEP[]={(char)0x7f, (char)0x00};
 
 
 void addChannels(char * v, int id) {
