@@ -35,6 +35,7 @@ src/js/src/main.js
 /* global Slack */
 /* global async */
 /* global sprintf */
+/* global store */
 /* global MessageQueue */
 /* global AppInfo */
 /* global _ */
@@ -54,6 +55,9 @@ Pebble.addEventListener('ready', function () {
   if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
     Slack.setAccessToken(DEBUG_ACCESS_TOKEN);
   }
+  else {
+    Slack.setAccessToken(store.get('slackAccessToken'));
+  }
   rtmStart();
 });
 
@@ -66,6 +70,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
     return;
   }
   Slack.setAccessToken(event.response);
+  store.set('slackAccessToken', event.response);
   rtmStart();
 });
 
@@ -100,7 +105,7 @@ Pebble.addEventListener('appmessage', function (event) {
 });
 
 function rtmStart() {
-  Slack.post('rtm.start', {}, function (err, data) {
+  Slack.post('rtm.start', function (err, data) {
     if (err) {
       return console.log(err);
     }
@@ -124,9 +129,7 @@ function rtmConnect(url) {
         rtmMessage(data);
         break;
       case 'user_typing':
-        // Fall through here.
       case 'presence_change':
-        // Ignore these messages because they're boring.
         break;
       default:
       // console.log(JSON.stringify(data));
