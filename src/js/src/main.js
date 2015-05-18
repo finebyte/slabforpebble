@@ -32,23 +32,17 @@ src/js/src/main.js
 
 */
 
-/* global Slack */
-/* global async */
-/* global sprintf */
-/* global store */
-/* global MessageQueue */
 /* global AppInfo */
-/* global _ */
-/* global Channel */
-/* global Group */
-/* global Im */
-/* global Users */
-/* global Message */
+/* global async */
 /* global DEBUG_ACCESS_TOKEN */
+/* global Message */
+/* global MessageQueue */
+/* global Slack */
+/* global sprintf */
+/* global State */
+/* global store */
+/* global Users */
 
-var channels = [];
-var groups = [];
-var ims = [];
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 
 Pebble.addEventListener('ready', function () {
@@ -109,9 +103,15 @@ function rtmStart() {
     if (err) {
       return console.log(err);
     }
-    channels = _.map(data.channels, Channel.create);
-    groups = _.map(data.groups, Group.create);
-    ims = _.map(data.ims, Im.create);
+    data.channels.forEach(function (channel) {
+      State.addChannel(channel);
+    });
+    data.groups.forEach(function (channel) {
+      State.addChannel(channel);
+    });
+    data.ims.forEach(function (channel) {
+      State.addChannel(channel);
+    });
     Users.load(data.users);
     sendInitialState();
     if (window.WebSocket) {
@@ -137,22 +137,26 @@ function rtmConnect(url) {
   };
 }
 
-function rtmMessage() {
-  // console.log(JSON.stringify(data, null, 2));
+function rtmMessage(data) {
+  var channel = State.getChannel(data.channel);
+  channel.addMessage(data);
+  sendMessages(data.channel, channel.getMessages(), function (err) {
+    console.log(err);
+  });
 }
 
 function sendInitialState() {
   MessageQueue.sendAppMessage({
     op: 'CHANNELS',
-    data: Channel.serialize(channels)
+    data: State.serializeChannels(State.getChannels('channel', true))
   }, ack, nack);
   MessageQueue.sendAppMessage({
     op: 'GROUPS',
-    data: Group.serialize(groups)
+    data: State.serializeChannels(State.getChannels('group', true))
   }, ack, nack);
   MessageQueue.sendAppMessage({
     op: 'IMS',
-    data: Im.serialize(ims)
+    data: State.serializeChannels(State.getChannels('im', true))
   }, ack, nack);
 }
 

@@ -20,6 +20,10 @@ var Slack = (function () {
     if (!accessToken) {
       return callback(new Error('No accessToken!'));
     }
+    if (!callback && typeof data === 'function') {
+      callback = data;
+      data = {};
+    }
     data.token = accessToken;
     superagent.get(apiRoot + method).query(data).end(doCallback(callback));
   }
@@ -27,6 +31,10 @@ var Slack = (function () {
   function post(method, data, callback) {
     if (!accessToken) {
       return callback(new Error('No accessToken!'));
+    }
+    if (!callback && typeof data === 'function') {
+      callback = data;
+      data = {};
     }
     data.token = accessToken;
     superagent.post(apiRoot + method).query(data).end(doCallback(callback));

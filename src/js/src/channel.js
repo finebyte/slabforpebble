@@ -1,5 +1,7 @@
 /* global _ */
 /* global DELIM */
+/* global Message */
+/* global Users */
 
 function Channel(data) {
   this.data = data;
@@ -9,19 +11,69 @@ Channel.create = function (data) {
   return new Channel(data);
 };
 
-Channel.serialize = function (channels) {
-  var filteredChannels = _.filter(channels, 'data.is_member');
-  var serializedChannels = _.invoke(filteredChannels, 'serialize');
-  serializedChannels.unshift(filteredChannels.length);
-  return serializedChannels.join(DELIM);
+Channel.prototype.serialize = function () {
+  var fields = [
+    this.data.id,
+    this.getDisplayName(),
+    this.getUnreadCount()
+  ];
+  console.log('Channel Serialised: ' + fields.join(' | '));
+  return fields.join(DELIM);
 };
 
-Channel.prototype.serialize = function () {
-  return [
-    this.data.id,
-    this.data.name,
-    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-    this.data.unread_count_display
-    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
-  ].join(DELIM);
+Channel.prototype.addMessage = function (message) {
+  if (!(message instanceof Message)) {
+    message = new Message(message);
+  }
+  this.messages = _.sortBy(this.messages, function (msg) {
+    return msg.data.ts;
+  });
+  this.messages = _.slice(this.messages, 100);
+};
+
+Channel.prototype.getType = function () {
+  switch (this.data.id.substr(0, 1)) {
+    case 'C':
+      return 'channel';
+    case 'G':
+      return 'group';
+    case 'D':
+      return 'im';
+    default:
+      return 'unknown';
+  }
+};
+
+Channel.prototype.isActive = function () {
+  // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+  switch (this.getType()) {
+    case 'channel':
+      return this.data.is_member;
+    case 'group':
+      return !this.data.is_archived;
+    case 'im':
+      return this.data.is_open;
+  }
+  return false;
+  // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+};
+
+Channel.prototype.getUnreadCount = function () {
+  // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+  if (this.getType() === 'im') {
+    return this.data.unread_count;
+  }
+  return this.data.unread_count_display;
+  // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+};
+
+Channel.prototype.getDisplayName = function () {
+  if (this.getType() === 'im') {
+    var user = Users.findById(this.data.user);
+    if (! user) {
+      return this.data.user;
+    }
+    return Users.findById(this.data.user).name;
+  }
+  return this.data.name;
 };

@@ -78,11 +78,10 @@ def build(ctx):
         '../src/js/src/hacks.js',
         '../src/js/src/emoji.js',
         '../src/js/src/users.js',
-        '../src/js/src/group.js',
         '../src/js/src/channel.js',
-        '../src/js/src/im.js',
         '../src/js/src/message.js',
         '../src/js/src/slack.js',
+        '../src/js/src/state.js',
         '../src/js/src/main.js'
     ]
     if os.path.isfile('src/js/src/debug.js'):
