@@ -52,7 +52,7 @@ void reply_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *d
 	snprintf(msg,100,"%s%c%s", replyChan->id,0x7f,replies[cell_index->row]);
 	sendCommand("MESSAGE",msg);
 	window_stack_pop(true);
-	app_timer_register(250,refresh,NULL);
+	app_timer_register(500,refresh,NULL);
 
 
 }

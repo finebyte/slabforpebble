@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "channelwindow.h"
 #include "chatwindow.h"
+#include "util.h"
 
 static Window *window;
 static TextLayer *text_layer;
@@ -58,7 +59,14 @@ static void window_disappear(Window *window) {
 	text_layer_destroy(text_layer);
 }
 
-static void window_unload(Window *window) {
+static void window_unload(Window *w) {
+	window=NULL;
+}
+
+void sendBufferSize() {
+	char bufsize[20];
+	snprintf(bufsize,20,"%lu",app_message_inbox_size_maximum());
+	sendCommand("BUFFER",bufsize);
 }
 
 void rcv(DictionaryIterator *received, void *context) {
@@ -75,15 +83,24 @@ void rcv(DictionaryIterator *received, void *context) {
 			if (t!=NULL) {
 				addChannels(t->value->cstring, CHANNELS);
 				channelwindow_create();
+				if (window!=NULL) {
+					window_stack_remove(window,false);
+				}
 			} else {
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "CHANNELS: NO CHANNELS");
 			}
+
+			sendBufferSize();
+
 		}
 		if (strcmp(op,"GROUPS")==0) {
 			t=dict_find(received,1); // data
 			if (t!=NULL) {
 				addChannels(t->value->cstring, GROUPS);
 				channelwindow_create();
+				if (window!=NULL) {
+					window_stack_remove(window,false);
+				}
 			} else {
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "GROUPS: NO GROUPS");
 			}
@@ -93,6 +110,9 @@ void rcv(DictionaryIterator *received, void *context) {
 			if (t!=NULL) {
 				addChannels(t->value->cstring,DM);
 				channelwindow_create();
+				if (window!=NULL) {
+					window_stack_remove(window,false);
+				}
 			} else {
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "IMS: NO IMS");
 			}

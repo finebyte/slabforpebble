@@ -10,7 +10,7 @@
 #include "channelwindow.h"
 #include "replywindow.h"
 
-chan_info * myChan;
+chan_info * myChan=NULL;
 
 typedef struct  {
 	char * name;
@@ -33,7 +33,20 @@ chat_group chats[1];
 
 char * chatTitle;
 
-
+void delMessages() {
+	int i;
+	for (i=0;i<1;i++) {
+		int j;
+		for (j=0;j<chats[i].num;j++) {
+			chat_msg * c = &chats[i].chans[j];
+			if (c->msg) free(c->msg);
+			if (c->name) free(c->name);
+			if (c->time) free(c->time);
+			if (c->title) free(c->title);
+		}
+		if (chats[i].chans) free(chats[i].chans);
+	}
+}
 
 
 
@@ -137,45 +150,54 @@ void chat_unload(Window *w) {
 	window=NULL;
 }
 
+void resetChatData() {
+		chats[0].num=1;
+		chats[0].chans=malloc(sizeof(chat_msg));
+		chats[0].chans[0].msg=strdup("Loading...");
+		chats[0].chans[0].name=strdup("NoName");
+		chats[0].chans[0].title=strdup("Wait a moment");
+		chats[0].chans[0].time=strdup("00:00");
 
+}
 
 void chatwindow_create(chan_info * chan) {
-//	static char msg[100];
-//	snprintf(msg,100,"CHANNEL%c%s",0x7f, chan->id);
+
+	if (myChan!=NULL) {
+		if (strcmp(myChan->id,chan->id)!=0) {
+			delMessages();
+			resetChatData();
+		}
+	} else {
+		resetChatData();
+	}
+
 	myChan = chan;
 	sendCommand("MESSAGES",chan->id);
 	chatTitle=chan->name;
 
+	window = window_create();
+#ifdef PBL_SDK_2
+	window_set_fullscreen(window,true);
+#endif
+
+	// Setup the window handlers
+	window_set_window_handlers(window, (WindowHandlers) {
+		.appear = &chat_load,
+				.disappear = &chat_disappear,
+				.unload = &chat_unload
+	});
+
+
+	window_stack_push(window,true);
+
 }
 
 void chatwindow_update() {
-
-	if (window==NULL) {
-		window = window_create();
-#ifdef PBL_SDK_2
-		window_set_fullscreen(window,true);
-#endif
-
-		// Setup the window handlers
-		window_set_window_handlers(window, (WindowHandlers) {
-			.appear = &chat_load,
-					.disappear = &chat_disappear,
-					.unload = &chat_unload
-		});
-
-
-		window_stack_push(window,true);
-	} else {
+	if (window!=NULL) {
 		menu_layer_reload_data(menu_layer);
 		layer_mark_dirty(window_get_root_layer(window));
 	}
-
-	//	menu_layer_reload_data(menu_layer);
-	//	layer_mark_dirty(window_get_root_layer(window));
-
 }
-
-
 
 void addMessages(char * v, int id) {
 
