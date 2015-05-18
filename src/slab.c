@@ -4,8 +4,8 @@
 #include "util.h"
 
 static Window *window;
-static TextLayer *text_layer;
-
+static BitmapLayer *layer_bitmap;
+static GBitmap *logo;
 
 void logComms(char * c, bool tx) {
 	static char time_text[] = "HH:MM:SS";
@@ -16,50 +16,24 @@ void logComms(char * c, bool tx) {
 
 }
 
-
-static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
-	text_layer_set_text(text_layer, "Select");
-
-//	addChannels("3^ID1^Name1^0^ID2^Name2^3^ID3^Name3^888", CHANNELS);
-//
-//	channelwindow_create();
-
-
-}
-
-static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
-	text_layer_set_text(text_layer, "Up");
-}
-
-static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
-	text_layer_set_text(text_layer, "Down");
-}
-
-static void click_config_provider(void *context) {
-	window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
-	window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
-	window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
-}
-
 static void window_load(Window *window) {
+	logo = gbitmap_create_with_resource(RESOURCE_ID_LOGO_SLACK);
+	layer_bitmap = bitmap_layer_create(GRect(32, 32, 80, 80));
+	bitmap_layer_set_bitmap(layer_bitmap, logo);
+	bitmap_layer_set_compositing_mode(layer_bitmap, GCompOpSet);
+	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(layer_bitmap));
 }
 
 
 static void window_appear(Window *window) {
-	Layer *window_layer = window_get_root_layer(window);
-	GRect bounds = layer_get_bounds(window_layer);
-
-	text_layer = text_layer_create((GRect) { .origin = { 0, 72 }, .size = { bounds.size.w, 20 } });
-	text_layer_set_text(text_layer, "Waiting for slack...");
-	text_layer_set_text_alignment(text_layer, GTextAlignmentCenter);
-	layer_add_child(window_layer, text_layer_get_layer(text_layer));
 }
 
 static void window_disappear(Window *window) {
-	text_layer_destroy(text_layer);
 }
 
 static void window_unload(Window *w) {
+	bitmap_layer_destroy(layer_bitmap);
+	gbitmap_destroy(logo);
 	window=NULL;
 }
 
@@ -146,7 +120,6 @@ void sent_callback(DictionaryIterator * iter, void * c) {
 
 static void init(void) {
 	window = window_create();
-	window_set_click_config_provider(window, click_config_provider);
 	window_set_window_handlers(window, (WindowHandlers) {
 		.load = window_load,
 		.unload = window_unload,
