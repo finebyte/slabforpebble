@@ -40,7 +40,7 @@ Message.prototype.getUserName = function (callback) {
 };
 
 Message.prototype.getTime = function () {
-  return moment(parseInt(this.data.ts, 10)).format('HH:mm');
+  return moment.unix(parseInt(this.data.ts, 10)).format('HH:mm');
 };
 
 Message.prototype.getText = function (callback) {

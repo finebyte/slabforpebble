@@ -9,15 +9,20 @@ var State = (function () {
 
   return {
     addChannel: addChannel,
+    getChannel: getChannel,
     getChannels: getChannels,
     serializeChannels: serializeChannels
   };
 
   function addChannel(data) {
-    var channel = _.findWhere(channels, { id: data.id });
+    var channel = getChannel(data.id);
     if (!channel) {
       channels.push(new Channel(data));
     }
+  }
+
+  function getChannel(id) {
+    return _.findWhere(channels, { id: id });
   }
 
   function getChannels(type, activeOnly) {

@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.8.0 (Custom Build) <https://lodash.com/>
- * Build: `lodash modern include="filter,invoke,map,findWhere" -o src/js/libs/lodash.js`
+ * Build: `lodash modern include="filter,invoke,map,findWhere,sortBy,take" -o src/js/libs/lodash.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -129,6 +129,30 @@
   var root = freeGlobal || ((freeWindow !== (this && this.window)) && freeWindow) || freeSelf || this;
 
   /**
+   * The base implementation of `compareAscending` which compares values and
+   * sorts them in ascending order without guaranteeing a stable sort.
+   *
+   * @private
+   * @param {*} value The value to compare to `other`.
+   * @param {*} other The value to compare to `value`.
+   * @returns {number} Returns the sort order indicator for `value`.
+   */
+  function baseCompareAscending(value, other) {
+    if (value !== other) {
+      var valIsReflexive = value === value,
+          othIsReflexive = other === other;
+
+      if (value > other || !valIsReflexive || (value === undefined && othIsReflexive)) {
+        return 1;
+      }
+      if (value < other || !othIsReflexive || (other === undefined && valIsReflexive)) {
+        return -1;
+      }
+    }
+    return 0;
+  }
+
+  /**
    * The base implementation of `_.findIndex` and `_.findLastIndex` without
    * support for callback shorthands and `this` binding.
    *
@@ -163,6 +187,19 @@
       return value;
     }
     return value == null ? '' : (value + '');
+  }
+
+  /**
+   * Used by `_.sortBy` to compare transformed elements of a collection and stable
+   * sort them in ascending order.
+   *
+   * @private
+   * @param {Object} object The object to compare to `other`.
+   * @param {Object} other The object to compare to `object`.
+   * @returns {number} Returns the sort order indicator for `object`.
+   */
+  function compareAscending(object, other) {
+    return baseCompareAscending(object.criteria, other.criteria) || (object.index - other.index);
   }
 
   /**
@@ -1038,6 +1075,26 @@
   }
 
   /**
+   * The base implementation of `_.sortBy` which uses `comparer` to define
+   * the sort order of `array` and replaces criteria objects with their
+   * corresponding values.
+   *
+   * @private
+   * @param {Array} array The array to sort.
+   * @param {Function} comparer The function to define sort order.
+   * @returns {Array} Returns `array`.
+   */
+  function baseSortBy(array, comparer) {
+    var length = array.length;
+
+    array.sort(comparer);
+    while (length--) {
+      array[length] = array[length].value;
+    }
+    return array;
+  }
+
+  /**
    * A specialized version of `baseCallback` which only supports `this` binding
    * and specifying the number of arguments to provide to `func`.
    *
@@ -1629,6 +1686,41 @@
   }
 
   /**
+   * Creates a slice of `array` with `n` elements taken from the beginning.
+   *
+   * @static
+   * @memberOf _
+   * @category Array
+   * @param {Array} array The array to query.
+   * @param {number} [n=1] The number of elements to take.
+   * @param- {Object} [guard] Enables use as a callback for functions like `_.map`.
+   * @returns {Array} Returns the slice of `array`.
+   * @example
+   *
+   * _.take([1, 2, 3]);
+   * // => [1]
+   *
+   * _.take([1, 2, 3], 2);
+   * // => [1, 2]
+   *
+   * _.take([1, 2, 3], 5);
+   * // => [1, 2, 3]
+   *
+   * _.take([1, 2, 3], 0);
+   * // => []
+   */
+  function take(array, n, guard) {
+    var length = array ? array.length : 0;
+    if (!length) {
+      return [];
+    }
+    if (guard ? isIterateeCall(array, n, guard) : n == null) {
+      n = 1;
+    }
+    return baseSlice(array, 0, n < 0 ? 0 : n);
+  }
+
+  /**
    * Iterates over elements of `collection`, returning an array of all elements
    * `predicate` returns truthy for. The predicate is bound to `thisArg` and
    * invoked with three arguments: (value, index|key, collection).
@@ -1863,6 +1955,70 @@
     var func = isArray(collection) ? arrayMap : baseMap;
     iteratee = getCallback(iteratee, thisArg, 3);
     return func(collection, iteratee);
+  }
+
+  /**
+   * Creates an array of elements, sorted in ascending order by the results of
+   * running each element in a collection through `iteratee`. This method performs
+   * a stable sort, that is, it preserves the original sort order of equal elements.
+   * The `iteratee` is bound to `thisArg` and invoked with three arguments:
+   * (value, index|key, collection).
+   *
+   * If a property name is provided for `iteratee` the created `_.property`
+   * style callback returns the property value of the given element.
+   *
+   * If a value is also provided for `thisArg` the created `_.matchesProperty`
+   * style callback returns `true` for elements that have a matching property
+   * value, else `false`.
+   *
+   * If an object is provided for `iteratee` the created `_.matches` style
+   * callback returns `true` for elements that have the properties of the given
+   * object, else `false`.
+   *
+   * @static
+   * @memberOf _
+   * @category Collection
+   * @param {Array|Object|string} collection The collection to iterate over.
+   * @param {Function|Object|string} [iteratee=_.identity] The function invoked
+   *  per iteration.
+   * @param {*} [thisArg] The `this` binding of `iteratee`.
+   * @returns {Array} Returns the new sorted array.
+   * @example
+   *
+   * _.sortBy([1, 2, 3], function(n) {
+   *   return Math.sin(n);
+   * });
+   * // => [3, 1, 2]
+   *
+   * _.sortBy([1, 2, 3], function(n) {
+   *   return this.sin(n);
+   * }, Math);
+   * // => [3, 1, 2]
+   *
+   * var users = [
+   *   { 'user': 'fred' },
+   *   { 'user': 'pebbles' },
+   *   { 'user': 'barney' }
+   * ];
+   *
+   * // using the `_.property` callback shorthand
+   * _.pluck(_.sortBy(users, 'user'), 'user');
+   * // => ['barney', 'fred', 'pebbles']
+   */
+  function sortBy(collection, iteratee, thisArg) {
+    if (collection == null) {
+      return [];
+    }
+    if (thisArg && isIterateeCall(collection, iteratee, thisArg)) {
+      iteratee = null;
+    }
+    var index = -1;
+    iteratee = getCallback(iteratee, thisArg, 3);
+
+    var result = baseMap(collection, function(value, key, collection) {
+      return { 'criteria': iteratee(value, key, collection), 'index': ++index, 'value': value };
+    });
+    return baseSortBy(result, compareAscending);
   }
 
   /**
@@ -2291,6 +2447,8 @@
   lodash.matches = matches;
   lodash.property = property;
   lodash.restParam = restParam;
+  lodash.sortBy = sortBy;
+  lodash.take = take;
 
   // Add aliases.
   lodash.collect = map;

@@ -5,6 +5,8 @@
 
 function Channel(data) {
   this.data = data;
+  this.id = data.id;
+  this.messages = [];
 }
 
 Channel.create = function (data) {
@@ -25,10 +27,15 @@ Channel.prototype.addMessage = function (message) {
   if (!(message instanceof Message)) {
     message = new Message(message);
   }
+  this.messages.push(message);
   this.messages = _.sortBy(this.messages, function (msg) {
-    return msg.data.ts;
+    return -1 * parseFloat(msg.data.ts, 10);
   });
-  this.messages = _.slice(this.messages, 100);
+  this.messages = _.take(this.messages, 100);
+};
+
+Channel.prototype.getMessages = function () {
+  return this.messages;
 };
 
 Channel.prototype.getType = function () {
@@ -70,7 +77,7 @@ Channel.prototype.getUnreadCount = function () {
 Channel.prototype.getDisplayName = function () {
   if (this.getType() === 'im') {
     var user = Users.findById(this.data.user);
-    if (! user) {
+    if (!user) {
       return this.data.user;
     }
     return Users.findById(this.data.user).name;

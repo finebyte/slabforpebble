@@ -35,7 +35,6 @@ src/js/src/main.js
 /* global AppInfo */
 /* global async */
 /* global DEBUG_ACCESS_TOKEN */
-/* global Message */
 /* global MessageQueue */
 /* global Slack */
 /* global sprintf */
@@ -75,11 +74,12 @@ Pebble.addEventListener('appmessage', function (event) {
 
   switch (op) {
     case 'MESSAGES':
-      fetchMessages(data, function (err, messages) {
+      var channel = State.getChannel(data);
+      fetchMessages(data, function (err) {
         if (err) {
           return console.log(err);
         }
-        sendMessages(data, messages, function (err) {
+        sendMessages(data, channel.getMessages(), function (err) {
           if (err) {
             return console.log(err);
           }
@@ -139,6 +139,8 @@ function rtmConnect(url) {
 
 function rtmMessage(data) {
   var channel = State.getChannel(data.channel);
+  console.log(data.channel);
+  console.log(JSON.stringify(data));
   channel.addMessage(data);
   sendMessages(data.channel, channel.getMessages(), function (err) {
     console.log(err);
@@ -162,6 +164,7 @@ function sendInitialState() {
 
 function fetchMessages(id, callback) {
   var apiMethod;
+  var channel = State.getChannel(id);
 
   switch (idType(id)) {
     case 'CHANNEL':
@@ -181,9 +184,10 @@ function fetchMessages(id, callback) {
     if (err) {
       return callback(err);
     }
-    console.log(sprintf('Fetched %d messages for %s',
-      data.messages.length, id));
-    return callback(null, data.messages.map(Message.create));
+    data.messages.forEach(function (message) {
+      channel.addMessage(message);
+    });
+    return callback();
   });
 }
 
