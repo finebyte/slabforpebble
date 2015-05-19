@@ -6,6 +6,7 @@
 static Window *window;
 static BitmapLayer *layer_bitmap;
 static GBitmap *logo;
+static TextLayer * status_tl;
 
 void logComms(char * c, bool tx) {
 	static char time_text[] = "HH:MM:SS";
@@ -16,12 +17,23 @@ void logComms(char * c, bool tx) {
 
 }
 
+void timeout(void* d) {
+	if (status_tl!=NULL) {
+		text_layer_set_text(status_tl, "Timeout connecting\nPlease launch again");
+	}
+}
+
 static void window_load(Window *window) {
 	logo = gbitmap_create_with_resource(RESOURCE_ID_LOGO_SLACK);
 	layer_bitmap = bitmap_layer_create(GRect(32, 32, 80, 80));
 	bitmap_layer_set_bitmap(layer_bitmap, logo);
 	bitmap_layer_set_compositing_mode(layer_bitmap, GCompOpSet);
 	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(layer_bitmap));
+	status_tl=text_layer_create(GRect(0,120,144,60));
+	text_layer_set_text_alignment(status_tl,GTextAlignmentCenter);
+	text_layer_set_text(status_tl, "Waiting for slack...");
+	layer_add_child(window_get_root_layer(window),text_layer_get_layer(status_tl));
+	app_timer_register(10000,timeout,NULL);
 }
 
 
@@ -34,6 +46,8 @@ static void window_disappear(Window *window) {
 static void window_unload(Window *w) {
 	bitmap_layer_destroy(layer_bitmap);
 	gbitmap_destroy(logo);
+	text_layer_destroy(status_tl);
+	status_tl=NULL;
 	window=NULL;
 }
 

@@ -9,17 +9,21 @@
 #include "util.h"
 #include "channelwindow.h"
 #include "chatwindow.h"
+#include "title_layer.h"
 
 
 
 static Window *window=NULL;
 static MenuLayer *menu_layer;
 static TextLayer  * watchInfo;
+static TitleLayer * title_layer;
+
+
 
 chan_group channels[3];
 
 char * sectionTitles[]={"Channels", "Groups", "DM" };
-
+char * channelWindowTitle;
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
 	return 3;
@@ -56,8 +60,13 @@ void window_load(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
+	title_layer = title_layer_create(GRect(0,0,144,24), channelWindowTitle);
+
+	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
+
+
 	// Create the menu layer
-	menu_layer = menu_layer_create(GRect(0,0,144,168));
+	menu_layer = menu_layer_create(GRect(0,24,144,168));
 
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
@@ -68,6 +77,10 @@ void window_load(Window *window) {
 				.draw_header = menu_draw_header_callback,
 				.select_click = menu_select_callback,
 	});
+
+#ifdef PBL_COLOR
+	menu_layer_set_highlight_colors(menu_layer,GColorBlue,GColorWhite);
+#endif
 
 	// Bind the menu layer's click config provider to the window for interactivity
 	menu_layer_set_click_config_onto_window(menu_layer, window);
@@ -144,6 +157,13 @@ void addChannels(char * v, int id) {
 		}
 	}
 	free(m);
+
+	static char time_text[] = "Updated at HH:MM";
+	time_t tt = time(NULL);
+	struct tm* curret_time = localtime(&tt);
+	strftime(time_text, sizeof(time_text), "Updated at %H:%M", curret_time);
+	channelWindowTitle = time_text;
+
 }
 
 
