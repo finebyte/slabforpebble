@@ -9,6 +9,7 @@
 #include "util.h"
 #include "channelwindow.h"
 #include "replywindow.h"
+#include "title_layer.h"
 
 chan_info * myChan=NULL;
 
@@ -22,12 +23,13 @@ typedef struct  {
 
 typedef struct  {
 	uint8_t num;
-	chat_msg * chans;
+	chat_msg * msgs;
 } chat_group;
 
 
 static Window *window=NULL;
 static MenuLayer *menu_layer;
+static TitleLayer *title_layer;
 
 chat_group chats[1];
 
@@ -37,14 +39,16 @@ void delMessages() {
 	int i;
 	for (i=0;i<1;i++) {
 		int j;
+
+		// First message is always static
 		for (j=0;j<chats[i].num;j++) {
-			chat_msg * c = &chats[i].chans[j];
+			chat_msg * c = &chats[i].msgs[j];
 			if (c->msg) free(c->msg);
 			if (c->name) free(c->name);
 			if (c->time) free(c->time);
 			if (c->title) free(c->title);
 		}
-		if (chats[i].chans) free(chats[i].chans);
+		if (chats[i].msgs) free(chats[i].msgs);
 	}
 }
 
@@ -69,16 +73,16 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 
 	graphics_draw_text(ctx,
-			chats[cell_index->section].chans[cell_index->row].title,
+			chats[cell_index->section].msgs[cell_index->row].title,
 			fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-			b,
-			GTextOverflowModeFill,
+			GRect(b.origin.x,b.origin.y,b.size.w,18),
+			GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft,
 			NULL);
 
 
 	graphics_draw_text(ctx,
-			chats[cell_index->section].chans[cell_index->row].msg,
+			chats[cell_index->section].msgs[cell_index->row].msg,
 			fonts_get_system_font(FONT_KEY_GOTHIC_18),
 			GRect(b.origin.x,b.origin.y+14,b.size.w,b.size.h),
 			GTextOverflowModeFill,
@@ -89,7 +93,7 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 // Here we capture when a user selects a menu item
 void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].chans[cell_index->row].name , chats[cell_index->section].chans[cell_index->row].msg, chats[cell_index->section].chans[cell_index->row].time);
+	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
 	replywindow_create(myChan);
 }
 
@@ -100,7 +104,7 @@ int16_t chat_get_header_height_callback( MenuLayer *menu_layer, uint16_t section
 int16_t chat_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context){
 
 	GSize s = graphics_text_layout_get_content_size(
-			chats[cell_index->section].chans[cell_index->row].msg,
+			chats[cell_index->section].msgs[cell_index->row].msg,
 			fonts_get_system_font(FONT_KEY_GOTHIC_18),
 			GRect(0,0,144,168),
 			GTextOverflowModeFill,
@@ -118,22 +122,30 @@ void chat_load(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
+	title_layer = title_layer_create(GRect(0,0,144,24), chatTitle);
+
+	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
+
 	// Create the menu layer
-	menu_layer = menu_layer_create(GRect(0,0,144,168));
+	menu_layer = menu_layer_create(GRect(0,24,144,168));
 
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
 		.get_num_sections = chat_get_num_sections_callback,
-				.get_header_height = chat_get_header_height_callback,
+//				.get_header_height = chat_get_header_height_callback,
 				.get_cell_height = chat_get_cell_height_callback,
 				.get_num_rows = chat_get_num_rows_callback,
 				.draw_row = chat_draw_row_callback,
-				.draw_header = chat_draw_header_callback,
+//				.draw_header = chat_draw_header_callback,
 				.select_click = chat_select_callback,
 	});
 
 	// Bind the menu layer's click config provider to the window for interactivity
 	menu_layer_set_click_config_onto_window(menu_layer, window);
+
+#ifdef PBL_COLOR
+	menu_layer_set_highlight_colors(menu_layer, GColorBlue, GColorWhite);
+#endif
 
 	// Add it to the window for display
 	layer_add_child(mainWindowLayer, menu_layer_get_layer(menu_layer));
@@ -150,13 +162,23 @@ void chat_unload(Window *w) {
 	window=NULL;
 }
 
+chat_msg * chat_msg_create (char * msg, char* name, char *title, char *time) {
+	chat_msg * c = malloc(sizeof(chat_msg));
+	c->msg=strdup(msg);
+	c->title=strdup(title);
+	c->name=strdup(name);
+	c->time=strdup(time);
+	return c;
+}
+
 void resetChatData() {
 		chats[0].num=1;
-		chats[0].chans=malloc(sizeof(chat_msg));
-		chats[0].chans[0].msg=strdup("Loading...");
-		chats[0].chans[0].name=strdup("NoName");
-		chats[0].chans[0].title=strdup("Wait a moment");
-		chats[0].chans[0].time=strdup("00:00");
+		chats[0].msgs=chat_msg_create("Loading","load","Wait a moment","00:00");
+//		chats[0].msgs=malloc(sizeof(chat_msg));
+//		chats[0].msgs[0].msg=strdup("Loading...");
+//		chats[0].msgs[0].name=strdup("NoName");
+//		chats[0].msgs[0].title=strdup("Wait a moment");
+//		chats[0].msgs[0].time=strdup("00:00");
 
 }
 
@@ -211,13 +233,14 @@ void addMessages(char * v, int id) {
 		tok=strtok(NULL,SEP);
 
 		if (tok!=NULL) {
-			chats[id].num = atoi(tok);
+			chats[id].num = atoi(tok)+1;
 			APP_LOG(APP_LOG_LEVEL_DEBUG,"num chats=%d", chats[id].num);
-			chats[id].chans = malloc (sizeof(chat_msg) * chats[id].num);
+			chats[id].msgs = malloc (sizeof(chat_msg) * chats[id].num);
 		}
 
+		chats[0].msgs[0]=*chat_msg_create("New Message","newmsg","Contribute","00:00");
 
-		uint8_t i = 0;
+		uint8_t i = 1;
 		tok=strtok(NULL,SEP);
 		// assuming correct formed triples...
 		//C04RHFQU8
@@ -228,23 +251,23 @@ void addMessages(char * v, int id) {
 		//ygalanter13:43with some other modifications
 
 		while (tok!=NULL) {
-			chats[id].chans[i].name = strdup(tok);
+			chats[id].msgs[i].name = strdup(tok);
 			tok=strtok(NULL,SEP);
-			chats[id].chans[i].time = strdup(tok);
+			chats[id].msgs[i].time = strdup(tok);
 			tok=strtok(NULL,SEP);
-			chats[id].chans[i].msg = strdup(tok);
+			chats[id].msgs[i].msg = strdup(tok);
 			tok=strtok(NULL,SEP);
-			int title_len=strlen(chats[id].chans[i].name)+1+
-					strlen(chats[id].chans[i].time)+1+2;
-			chats[id].chans[i].title = malloc(title_len);
-			snprintf(chats[id].chans[i].title,title_len,"%s@%s",
-					chats[id].chans[i].name,
-					chats[id].chans[i].time);
+			int title_len=strlen(chats[id].msgs[i].name)+1+
+					strlen(chats[id].msgs[i].time)+1+2;
+			chats[id].msgs[i].title = malloc(title_len);
+			snprintf(chats[id].msgs[i].title,title_len,"%s %s",
+					chats[id].msgs[i].time,
+					chats[id].msgs[i].name);
 			APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
 					heap_bytes_free(),
 					i,
-					chats[id].chans[i].title,
-					chats[id].chans[i].msg);
+					chats[id].msgs[i].title,
+					chats[id].msgs[i].msg);
 
 			i++;
 		}
