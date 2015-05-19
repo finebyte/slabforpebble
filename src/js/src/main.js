@@ -131,6 +131,7 @@ Pebble.addEventListener('appmessage', function (event) {
       break;
     case 'BUFFER':
       maxBufferSize = parseInt(data, 10);
+      console.log('Setting maximum buffer size: ' + maxBufferSize);
       break;
     default:
     // Pass!
@@ -239,7 +240,7 @@ function fetchMessages(id, callback) {
 }
 
 function sendMessages(id, messages, callback) {
-  var maxMessageLength = maxBufferSize - 32;
+  var maxMessageLength = maxBufferSize - 64;
   var messageData = '';
   var messageDataFull = false;
   var m = 0;
@@ -256,6 +257,16 @@ function sendMessages(id, messages, callback) {
         return callback();
       }
       message.serialize(function (err, str) {
+        if (err) {
+          console.log(err);
+          return callback();
+        }
+        if (typeof str === 'undefined') {
+          console.log('UNDEFINED!');
+          console.log(JSON.stringify(message, null, 2));
+          console.log('UNDEFINED!');
+          return callback();
+        }
         if ((messageData + str).length <= maxMessageLength) {
           messageData += DELIM + str;
           numMessages += 1;
@@ -276,6 +287,8 @@ function sendMessages(id, messages, callback) {
         op: 'MESSAGES',
         data: id + DELIM + numMessages + DELIM + messageData
       };
+      console.log(JSON.stringify(payload));
+      console.log(payload.data.length);
       MessageQueue.sendAppMessage(payload, function () {
         callback();
       }, function () {
@@ -298,8 +311,9 @@ function ack() {
   console.log('ACK!');
 }
 
-function nack() {
+function nack(event) {
   console.log('NACK!');
+  console.log(JSON.stringify(event));
 }
 
 function idType(id) {

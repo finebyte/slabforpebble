@@ -53,16 +53,19 @@ Message.prototype.getText = function (callback) {
     });
   }
 
-  var matches = /(<.+>)/g.exec(text);
+  var matches = text.match(/<([^>]+)>/g);
   if (!matches) {
     return callback(null, text);
   }
-  async.each(matches, function (match, callback) {
+  console.log(matches);
+  async.eachSeries(matches, function (match, callback) {
     var matchType = match.substr(1, 2);
     switch (matchType) {
       case '@U':
         processUserMention(text, match, function (err, newText) {
-          if (err) { return callback(err); }
+          if (err) {
+            return callback(err);
+          }
           text = newText;
           return callback();
         });

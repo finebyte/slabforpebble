@@ -30,6 +30,7 @@ var Users = (function () {
   function loadById(id, callback) {
     Slack.get('users.info', { user: id }, function (err, data) {
       if (err) {
+        console.log(id);
         return callback(err);
       }
       users.push(data.user);
