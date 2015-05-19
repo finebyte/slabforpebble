@@ -15,11 +15,17 @@ static void title_layer_update_proc(Layer *layer, GContext* ctx) {
 		TitleLayer *  title_layer = (TitleLayer*)(layer_get_data(layer));
 
 		graphics_context_set_stroke_color(ctx, GColorBlack);
+#ifdef PBL_COLOR
+
+		graphics_context_set_fill_color(ctx, GColorGreen);
+		graphics_fill_rect(ctx,GRect(b.origin.x,b.origin.y,b.size.w,b.size.h-3),0,GCornersAll);
+	#endif
+
 		graphics_context_set_text_color(ctx,GColorBlack);
 		// Draw the text
 		graphics_draw_text(ctx,
 				title_layer->title,
-				fonts_get_system_font(FONT_KEY_GOTHIC_18),
+				fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
 				b,
 				GTextOverflowModeTrailingEllipsis,
 				GTextAlignmentCenter,
@@ -29,6 +35,8 @@ static void title_layer_update_proc(Layer *layer, GContext* ctx) {
 
 		GPoint l = GPoint(b.origin.x,b.origin.y+b.size.h-1);
 		GPoint r = GPoint(l.x+b.size.w,l.y);
+
+
 
 		graphics_draw_line(ctx, l,r);
 		graphics_draw_line(ctx, GPoint(l.x,l.y-3),GPoint(r.x,r.y-3));

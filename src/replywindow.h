@@ -8,6 +8,6 @@
 #ifndef REPLYWINDOW_H_
 #define REPLYWINDOW_H_
 
-void replywindow_create(chan_info * c);
+void replywindow_create(chan_info * c, char * r);
 
 #endif /* REPLYWINDOW_H_ */

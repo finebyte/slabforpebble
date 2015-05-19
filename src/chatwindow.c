@@ -94,7 +94,13 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 // Here we capture when a user selects a menu item
 void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
-	replywindow_create(myChan);
+	if (strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) {
+		replywindow_create(myChan,"");
+	} else {
+		static char replyToBuffer[100];
+		snprintf(replyToBuffer,100,"@%s: ",chats[cell_index->section].msgs[cell_index->row].name);
+		replywindow_create(myChan,replyToBuffer);
+	}
 }
 
 int16_t chat_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
@@ -132,11 +138,11 @@ void chat_load(Window *window) {
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
 		.get_num_sections = chat_get_num_sections_callback,
-//				.get_header_height = chat_get_header_height_callback,
+				//				.get_header_height = chat_get_header_height_callback,
 				.get_cell_height = chat_get_cell_height_callback,
 				.get_num_rows = chat_get_num_rows_callback,
 				.draw_row = chat_draw_row_callback,
-//				.draw_header = chat_draw_header_callback,
+				//				.draw_header = chat_draw_header_callback,
 				.select_click = chat_select_callback,
 	});
 
@@ -172,13 +178,13 @@ chat_msg * chat_msg_create (char * msg, char* name, char *title, char *time) {
 }
 
 void resetChatData() {
-		chats[0].num=1;
-		chats[0].msgs=chat_msg_create("Loading","load","Wait a moment","00:00");
-//		chats[0].msgs=malloc(sizeof(chat_msg));
-//		chats[0].msgs[0].msg=strdup("Loading...");
-//		chats[0].msgs[0].name=strdup("NoName");
-//		chats[0].msgs[0].title=strdup("Wait a moment");
-//		chats[0].msgs[0].time=strdup("00:00");
+	chats[0].num=1;
+	chats[0].msgs=chat_msg_create("Loading","load","Wait a moment","00:00");
+	//		chats[0].msgs=malloc(sizeof(chat_msg));
+	//		chats[0].msgs[0].msg=strdup("Loading...");
+	//		chats[0].msgs[0].name=strdup("NoName");
+	//		chats[0].msgs[0].title=strdup("Wait a moment");
+	//		chats[0].msgs[0].time=strdup("00:00");
 
 }
 
@@ -253,23 +259,33 @@ void addMessages(char * v, int id) {
 		while (tok!=NULL) {
 			chats[id].msgs[i].name = strdup(tok);
 			tok=strtok(NULL,SEP);
-			chats[id].msgs[i].time = strdup(tok);
-			tok=strtok(NULL,SEP);
-			chats[id].msgs[i].msg = strdup(tok);
-			tok=strtok(NULL,SEP);
-			int title_len=strlen(chats[id].msgs[i].name)+1+
-					strlen(chats[id].msgs[i].time)+1+2;
-			chats[id].msgs[i].title = malloc(title_len);
-			snprintf(chats[id].msgs[i].title,title_len,"%s %s",
-					chats[id].msgs[i].time,
-					chats[id].msgs[i].name);
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
-					heap_bytes_free(),
-					i,
-					chats[id].msgs[i].title,
-					chats[id].msgs[i].msg);
+			if (tok!=NULL) {
+				chats[id].msgs[i].time = strdup(tok);
+				tok=strtok(NULL,SEP);
+				if (tok!=NULL) {
+					chats[id].msgs[i].msg = strdup(tok);
+
+					int title_len=strlen(chats[id].msgs[i].name)+1+
+							strlen(chats[id].msgs[i].time)+1+2;
+					chats[id].msgs[i].title = malloc(title_len);
+					snprintf(chats[id].msgs[i].title,title_len,"%s %s",
+							chats[id].msgs[i].time,
+							chats[id].msgs[i].name);
+					APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
+							heap_bytes_free(),
+							i,
+							chats[id].msgs[i].title,
+							chats[id].msgs[i].msg);
+				} else {
+					APP_LOG(APP_LOG_LEVEL_ERROR,"Bad chat msg, NULL msg for %s", chats[id].msgs[i].name );
+
+				}
+			} else {
+				APP_LOG(APP_LOG_LEVEL_ERROR,"Bad chat msg, NULL time for %s", chats[id].msgs[i].name );
+			}
 
 			i++;
+			tok=strtok(NULL,SEP);
 		}
 	}
 	free(m);

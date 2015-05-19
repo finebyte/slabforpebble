@@ -121,6 +121,7 @@ void dropped(AppMessageResult reason, void * context){
 	if (reason==APP_MSG_BUFFER_OVERFLOW) {
 		APP_LOG(APP_LOG_LEVEL_ERROR,"APP_MSG_BUF_OVR");
 	}
+	APP_LOG(APP_LOG_LEVEL_ERROR,"APP_MSG DROP %d", reason);
 }
 
 void send_failed(DictionaryIterator * iter, AppMessageResult r, void* c) {
@@ -143,7 +144,7 @@ static void init(void) {
 	const bool animated = true;
 
 
-	AppMessageResult r=	app_message_open(app_message_inbox_size_maximum(),app_message_outbox_size_maximum());
+	app_message_open(app_message_inbox_size_maximum(),app_message_outbox_size_maximum());
 	app_message_register_inbox_received(rcv);
 	app_message_register_inbox_dropped(dropped);
 	app_message_register_outbox_failed(send_failed);

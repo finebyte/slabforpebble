@@ -10,13 +10,15 @@
 #include "pebble.h"
 #include "util.h"
 #include "channelwindow.h"
+#include "title_layer.h"
 
 chan_info * replyChan;
+char * replyTo;
 
 
 static Window *window=NULL;
 static MenuLayer *menu_layer;
-static TextLayer  * watchInfo;
+static TitleLayer * title_layer;
 
 //chan_group channels[3];
 
@@ -48,11 +50,12 @@ void refresh(void * data) {
 void reply_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s" ,
 		replies[cell_index->row]);
+
 	static char msg[100];
-	snprintf(msg,100,"%s%c%s", replyChan->id,0x7f,replies[cell_index->row]);
+	snprintf(msg,100,"%s%c%s%s", replyChan->id,0x7f,replyTo,replies[cell_index->row]);
 	sendCommand("MESSAGE",msg);
 	window_stack_pop(true);
-//	app_timer_register(500,r	efresh,NULL);
+//	app_timer_register(500,refresh,NULL);
 
 
 }
@@ -70,18 +73,31 @@ void replywindow_load(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
+	static char titleText[40];
+	snprintf(titleText,40,"Reply %s", replyTo);
+
+	title_layer = title_layer_create(GRect(0,0,144,24), titleText);
+
+	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
+
+
 	// Create the menu layer
-	menu_layer = menu_layer_create(GRect(0,0,144,168));
+	menu_layer = menu_layer_create(GRect(0,24,144,144));
 
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
 		.get_num_sections = reply_get_num_sections_callback,
-				.get_header_height = reply_get_header_height_callback,
+//				.get_header_height = reply_get_header_height_callback,
 		.get_num_rows = reply_get_num_rows_callback,
 				.draw_row = reply_draw_row_callback,
-				.draw_header = reply_draw_header_callback,
+//				.draw_header = reply_draw_header_callback,
 				.select_click = reply_select_callback,
 	});
+
+#ifdef PBL_COLOR
+	menu_layer_set_highlight_colors(menu_layer,GColorBlue,GColorWhite);
+#endif
+
 
 	// Bind the menu layer's click config provider to the window for interactivity
 	menu_layer_set_click_config_onto_window(menu_layer, window);
@@ -94,7 +110,6 @@ void replywindow_disappear(Window *window) {
 	// Destroy the menu layer
 	layer_remove_from_parent(menu_layer_get_layer(menu_layer));
 	menu_layer_destroy(menu_layer);
-	text_layer_destroy(watchInfo);
 }
 
 void replywindow_unload(Window *w) {
@@ -105,8 +120,9 @@ void replywindow_unload(Window *w) {
 
 
 
-void replywindow_create(chan_info * c) {
+void replywindow_create(chan_info * c, char * replyto) {
 
+	replyTo=replyto;
 	replyChan=c;
 
 	if (window==NULL) {
