@@ -27,6 +27,15 @@ Channel.prototype.addMessage = function (message) {
   if (!(message instanceof Message)) {
     message = new Message(message);
   }
+  var currentMessage = _.find(this.messages, function (msg) {
+    return msg.equals(message);
+  });
+  if (currentMessage) {
+    console.log('Ignoring duplicated message!');
+    // HACK: Need to do something smarter for updating messages.
+    currentMessage.data.text = message.data.text;
+    return;
+  }
   this.messages.push(message);
   this.messages = _.sortBy(this.messages, function (msg) {
     return -1 * parseFloat(msg.data.ts, 10);

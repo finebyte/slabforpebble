@@ -43,6 +43,7 @@ src/js/src/main.js
 /* global Users */
 
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
+var maxBufferSize = 1000;
 
 Pebble.addEventListener('ready', function () {
   if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
@@ -75,6 +76,7 @@ Pebble.addEventListener('appmessage', function (event) {
   switch (op) {
     case 'MESSAGES':
       var channel = State.getChannel(data);
+      State.setActiveChannel(channel.id);
       fetchMessages(data, function (err) {
         if (err) {
           return console.log(err);
@@ -92,6 +94,9 @@ Pebble.addEventListener('appmessage', function (event) {
           return console.log(err);
         }
       });
+      break;
+    case 'BUFFER':
+      maxBufferSize = parseInt(data, 10);
       break;
     default:
     // Pass!
@@ -142,9 +147,11 @@ function rtmMessage(data) {
   console.log(data.channel);
   console.log(JSON.stringify(data));
   channel.addMessage(data);
-  sendMessages(data.channel, channel.getMessages(), function (err) {
-    console.log(err);
-  });
+  if (State.getActiveChannel() === channel.id) {
+    sendMessages(data.channel, channel.getMessages(), function (err) {
+      console.log(err);
+    });
+  }
 }
 
 function sendInitialState() {
@@ -192,8 +199,7 @@ function fetchMessages(id, callback) {
 }
 
 function sendMessages(id, messages, callback) {
-  // TODO: Don't hardcode this value.
-  var maxMessageLength = 1000;
+  var maxMessageLength = maxBufferSize - 32;
   var messageData = '';
   var messageDataFull = false;
   var m = 0;
@@ -209,7 +215,6 @@ function sendMessages(id, messages, callback) {
           sprintf('Skipping message with subtype %s', message.data.subtype));
         return callback();
       }
-      console.log(JSON.stringify(message));
       message.serialize(function (err, str) {
         if ((messageData + str).length <= maxMessageLength) {
           messageData += DELIM + str;

@@ -84,6 +84,10 @@ Message.prototype.getText = function (callback) {
   });
 };
 
+Message.prototype.equals = function (other) {
+  return other.data.ts === this.data.ts;
+};
+
 function processUserMention(text, match, callback) {
   var userId = match.substr(2, match.length - 3);
   var user = Users.findById(userId);

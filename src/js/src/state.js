@@ -6,11 +6,14 @@
 var State = (function () {
 
   var channels = [];
+  var activeChannel = null;
 
   return {
     addChannel: addChannel,
     getChannel: getChannel,
     getChannels: getChannels,
+    getActiveChannel: getActiveChannel,
+    setActiveChannel: setActiveChannel,
     serializeChannels: serializeChannels
   };
 
@@ -32,6 +35,14 @@ var State = (function () {
       }
       return channel.getType() === type;
     });
+  }
+
+  function setActiveChannel(id) {
+    activeChannel = id;
+  }
+
+  function getActiveChannel() {
+    return activeChannel;
   }
 
   function serializeChannels(channels) {
