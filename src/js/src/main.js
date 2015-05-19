@@ -44,6 +44,7 @@ src/js/src/main.js
 
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 var maxBufferSize = 1000;
+var sendMessageTimer = null;
 
 Pebble.addEventListener('ready', function () {
   if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
@@ -56,16 +57,49 @@ Pebble.addEventListener('ready', function () {
 });
 
 Pebble.addEventListener('showConfiguration', function () {
-  Pebble.openURL('https://slab-for-pebble.herokuapp.com/');
+  var watch = Pebble.getActiveWatchInfo();
+  var query = [];
+  query.push(['version', AppInfo.versionLabel]);
+  query.push(['hardware_platform', watch ? watch.platform : 'aplite']);
+  if (watch) {
+    query.push(['model', watch.model]);
+    query.push(['language', watch.language]);
+    if (watch.firmware.suffix && watch.firmware.suffix.length) {
+      query.push(['firmware',
+        sprintf('%d.%d.%d-%s', watch.firmware.major, watch.firmware.minor,
+          watch.firmware.patch, watch.firmware.suffix)]);
+    }
+    else {
+      query.push(['firmware',
+        sprintf('%d.%d.%d', watch.firmware.major, watch.firmware.minor,
+          watch.firmware.patch)]);
+    }
+  }
+  query.push(['account_token', Pebble.getAccountToken()]);
+  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
+    query.push(['slack_access_token', DEBUG_ACCESS_TOKEN]);
+  }
+  else if (store.get('slackAccessToken')) {
+    query.push(['slack_access_token', store.get('slackAccessToken')]);
+  }
+  var queryString = query.map(function (q) { return q.join('='); }).join('&');
+  var configUrl = AppInfo.settings.configPage + '?' + queryString;
+  console.log(configUrl);
+  Pebble.openURL(configUrl);
 });
 
 Pebble.addEventListener('webviewclosed', function (event) {
   if (event.response === 'CANCELLED') {
     return;
   }
-  Slack.setAccessToken(event.response);
-  store.set('slackAccessToken', event.response);
-  rtmStart();
+  try {
+    var config = JSON.parse(event.response);
+    Slack.setAccessToken(config.slackAccessToken);
+    store.set('slackAccessToken', config.slackAccessToken);
+    rtmStart();
+  }
+  catch (ex) {
+  }
 });
 
 Pebble.addEventListener('appmessage', function (event) {
@@ -137,20 +171,26 @@ function rtmConnect(url) {
       case 'presence_change':
         break;
       default:
-      // console.log(JSON.stringify(data));
+        console.log(JSON.stringify(data));
     }
   };
 }
 
 function rtmMessage(data) {
   var channel = State.getChannel(data.channel);
-  console.log(data.channel);
-  console.log(JSON.stringify(data));
   channel.addMessage(data);
   if (State.getActiveChannel() === channel.id) {
-    sendMessages(data.channel, channel.getMessages(), function (err) {
-      console.log(err);
-    });
+    if (sendMessageTimer) {
+      clearTimeout(sendMessageTimer);
+    }
+    sendMessageTimer = setTimeout(function () {
+      sendMessageTimer = null;
+      sendMessages(data.channel, channel.getMessages(), function (err) {
+        if (err) {
+          console.log(err);
+        }
+      });
+    }, 5000);
   }
 }
 
@@ -236,7 +276,6 @@ function sendMessages(id, messages, callback) {
         op: 'MESSAGES',
         data: id + DELIM + numMessages + DELIM + messageData
       };
-      console.log(payload.data);
       MessageQueue.sendAppMessage(payload, function () {
         callback();
       }, function () {

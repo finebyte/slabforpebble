@@ -25,6 +25,7 @@
     ]
   },
   "settings": {
-    "delimiter": 127
+    "delimiter": 127,
+    "configPage": "https://slab-for-pebble.herokuapp.com/config/"
   }
 }
