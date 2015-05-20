@@ -47,7 +47,7 @@ var maxBufferSize = 1000;
 var sendMessageTimer = null;
 
 Pebble.addEventListener('ready', function () {
-  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
+  if (false && typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
     Slack.setAccessToken(DEBUG_ACCESS_TOKEN);
   }
   else {
@@ -84,7 +84,6 @@ Pebble.addEventListener('showConfiguration', function () {
   }
   var queryString = query.map(function (q) { return q.join('='); }).join('&');
   var configUrl = AppInfo.settings.configPage + '?' + queryString;
-  console.log(configUrl);
   Pebble.openURL(configUrl);
 });
 
@@ -94,11 +93,18 @@ Pebble.addEventListener('webviewclosed', function (event) {
   }
   try {
     var config = JSON.parse(event.response);
-    Slack.setAccessToken(config.slackAccessToken);
-    store.set('slackAccessToken', config.slackAccessToken);
-    rtmStart();
+    var currentToken = ((typeof DEBUG_ACCESS_TOKEN !== 'undefined') ?
+      DEBUG_ACCESS_TOKEN : store.get('slackAccessToken'));
+    var newToken = currentToken !== config.accessToken;
+    if (newToken) {
+      Slack.setAccessToken(config.accessToken);
+      store.set('slackAccessToken', config.accessToken);
+      rtmStart();
+    }
+    sendReplies(config.replies);
   }
   catch (ex) {
+    console.error(ex);
   }
 });
 
@@ -287,8 +293,6 @@ function sendMessages(id, messages, callback) {
         op: 'MESSAGES',
         data: id + DELIM + numMessages + DELIM + messageData
       };
-      console.log(JSON.stringify(payload));
-      console.log(payload.data.length);
       MessageQueue.sendAppMessage(payload, function () {
         callback();
       }, function () {
@@ -325,4 +329,13 @@ function idType(id) {
     case 'C':
       return 'CHANNEL';
   }
+}
+
+function sendReplies(replies) {
+  var data = replies.map(function (reply) { return reply.text; });
+  data.unshift(replies.length);
+  MessageQueue.sendAppMessage({
+    op: 'REPLIES',
+    data: data.join(DELIM)
+  }, ack, nack);
 }
