@@ -51,8 +51,11 @@ Pebble.addEventListener('ready', function () {
   if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
     Slack.setAccessToken(DEBUG_ACCESS_TOKEN);
   }
+  else if (store.get('slackAccessToken')) {
+    Slack.setAccessToken();
+  }
   else {
-    Slack.setAccessToken(store.get('slackAccessToken'));
+    MessageQueue.sendAppMessage({ op: 'CONFIG' }, ack, nack);
   }
   rtmStart();
 });
