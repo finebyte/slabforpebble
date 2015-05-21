@@ -109,6 +109,7 @@ Pebble.addEventListener('appmessage', function (event) {
     case 'MESSAGE':
       postMessage(dataArray[0], dataArray[1], function (err) {
         if (err) {
+          MessageQueue.sendAppMessage({ op: 'ERROR', data: err.toString() });
           return console.log(err);
         }
       });
