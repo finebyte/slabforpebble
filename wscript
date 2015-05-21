@@ -70,7 +70,8 @@ def build(ctx):
         '../src/js/libs/sprintf.js',
         '../src/js/libs/lodash.js',
         '../src/js/libs/async.js',
-        '../src/js/libs/moment.js'
+        '../src/js/libs/moment.js',
+        '../src/js/libs/reconnecting-websocket.js'
     ]
 
     js_sources = [

@@ -45,9 +45,10 @@ src/js/src/main.js
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
 var maxBufferSize = 1000;
 var sendMessageTimer = null;
+var quickRefreshChannel = null;
 
 Pebble.addEventListener('ready', function () {
-  if (false && typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
+  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
     Slack.setAccessToken(DEBUG_ACCESS_TOKEN);
   }
   else {
@@ -57,34 +58,7 @@ Pebble.addEventListener('ready', function () {
 });
 
 Pebble.addEventListener('showConfiguration', function () {
-  var watch = Pebble.getActiveWatchInfo();
-  var query = [];
-  query.push(['version', AppInfo.versionLabel]);
-  query.push(['hardware_platform', watch ? watch.platform : 'aplite']);
-  if (watch) {
-    query.push(['model', watch.model]);
-    query.push(['language', watch.language]);
-    if (watch.firmware.suffix && watch.firmware.suffix.length) {
-      query.push(['firmware',
-        sprintf('%d.%d.%d-%s', watch.firmware.major, watch.firmware.minor,
-          watch.firmware.patch, watch.firmware.suffix)]);
-    }
-    else {
-      query.push(['firmware',
-        sprintf('%d.%d.%d', watch.firmware.major, watch.firmware.minor,
-          watch.firmware.patch)]);
-    }
-  }
-  query.push(['account_token', Pebble.getAccountToken()]);
-  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
-    query.push(['slack_access_token', DEBUG_ACCESS_TOKEN]);
-  }
-  else if (store.get('slackAccessToken')) {
-    query.push(['slack_access_token', store.get('slackAccessToken')]);
-  }
-  var queryString = query.map(function (q) { return q.join('='); }).join('&');
-  var configUrl = AppInfo.settings.configPage + '?' + queryString;
-  Pebble.openURL(configUrl);
+  Pebble.openURL(buildConfigUrl());
 });
 
 Pebble.addEventListener('webviewclosed', function (event) {
@@ -101,7 +75,8 @@ Pebble.addEventListener('webviewclosed', function (event) {
       store.set('slackAccessToken', config.accessToken);
       rtmStart();
     }
-    sendReplies(config.replies);
+    store.set('replies', config.replies);
+    sendReplies();
   }
   catch (ex) {
     console.error(ex);
@@ -145,7 +120,7 @@ Pebble.addEventListener('appmessage', function (event) {
 });
 
 function rtmStart() {
-  Slack.post('rtm.start', function (err, data) {
+  Slack.post('rtm.start', {}, function (err, data) {
     if (err) {
       return console.log(err);
     }
@@ -167,7 +142,7 @@ function rtmStart() {
 }
 
 function rtmConnect(url) {
-  var rtmSocket = new WebSocket(url);
+  var rtmSocket = new window.ReconnectingWebSocket(url);
   rtmSocket.onmessage = function (event) {
     var data = JSON.parse(event.data);
     switch (data.type) {
@@ -190,6 +165,11 @@ function rtmMessage(data) {
     if (sendMessageTimer) {
       clearTimeout(sendMessageTimer);
     }
+    var delay = 5000;
+    if (quickRefreshChannel === data.channel) {
+      delay = 0;
+      quickRefreshChannel = null;
+    }
     sendMessageTimer = setTimeout(function () {
       sendMessageTimer = null;
       sendMessages(data.channel, channel.getMessages(), function (err) {
@@ -197,7 +177,7 @@ function rtmMessage(data) {
           console.log(err);
         }
       });
-    }, 5000);
+    }, delay);
   }
 }
 
@@ -214,6 +194,7 @@ function sendInitialState() {
     op: 'IMS',
     data: State.serializeChannels(State.getChannels('im', true))
   }, ack, nack);
+  sendReplies();
 }
 
 function fetchMessages(id, callback) {
@@ -303,6 +284,7 @@ function sendMessages(id, messages, callback) {
 
 function postMessage(id, message, callback) {
   // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+  quickRefreshChannel = id;
   Slack.post('chat.postMessage', {
     channel: id,
     text: message,
@@ -331,11 +313,42 @@ function idType(id) {
   }
 }
 
-function sendReplies(replies) {
+function sendReplies() {
+  var replies = store.get('replies', []);
   var data = replies.map(function (reply) { return reply.text; });
   data.unshift(replies.length);
   MessageQueue.sendAppMessage({
     op: 'REPLIES',
     data: data.join(DELIM)
   }, ack, nack);
+}
+
+function buildConfigUrl() {
+  var watch = Pebble.getActiveWatchInfo();
+  var query = [];
+  query.push(['version', AppInfo.versionLabel]);
+  query.push(['hardware_platform', watch ? watch.platform : 'aplite']);
+  if (watch) {
+    query.push(['model', watch.model]);
+    query.push(['language', watch.language]);
+    if (watch.firmware.suffix && watch.firmware.suffix.length) {
+      query.push(['firmware',
+        sprintf('%d.%d.%d-%s', watch.firmware.major, watch.firmware.minor,
+          watch.firmware.patch, watch.firmware.suffix)]);
+    }
+    else {
+      query.push(['firmware',
+        sprintf('%d.%d.%d', watch.firmware.major, watch.firmware.minor,
+          watch.firmware.patch)]);
+    }
+  }
+  query.push(['account_token', Pebble.getAccountToken()]);
+  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
+    query.push(['slack_access_token', DEBUG_ACCESS_TOKEN]);
+  }
+  else if (store.get('slackAccessToken')) {
+    query.push(['slack_access_token', store.get('slackAccessToken')]);
+  }
+  var queryString = query.map(function (q) { return q.join('='); }).join('&');
+  return AppInfo.settings.configPage + '?' + queryString;
 }
