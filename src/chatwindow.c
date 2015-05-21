@@ -95,11 +95,11 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
 	if (strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) {
-		replywindow_create(myChan,"");
+		replywindow_create(myChan,"", get_myReplies());
 	} else {
 		static char replyToBuffer[100];
 		snprintf(replyToBuffer,100,"@%s: ",chats[cell_index->section].msgs[cell_index->row].name);
-		replywindow_create(myChan,replyToBuffer);
+		replywindow_create(myChan,replyToBuffer, get_myReplies());
 	}
 }
 
@@ -125,6 +125,7 @@ void chat_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t 
 
 // This initializes the menu upon window load
 void chat_load(Window *window) {
+	APP_LOG(APP_LOG_LEVEL_DEBUG,"chat_load_create");
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
@@ -138,12 +139,10 @@ void chat_load(Window *window) {
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
 		.get_num_sections = chat_get_num_sections_callback,
-				//				.get_header_height = chat_get_header_height_callback,
-				.get_cell_height = chat_get_cell_height_callback,
-				.get_num_rows = chat_get_num_rows_callback,
-				.draw_row = chat_draw_row_callback,
-				//				.draw_header = chat_draw_header_callback,
-				.select_click = chat_select_callback,
+		.get_cell_height = chat_get_cell_height_callback,
+		.get_num_rows = chat_get_num_rows_callback,
+		.draw_row = chat_draw_row_callback,
+		.select_click = chat_select_callback,
 	});
 
 	// Bind the menu layer's click config provider to the window for interactivity
@@ -161,6 +160,7 @@ void chat_disappear(Window *window) {
 	// Destroy the menu layer
 	layer_remove_from_parent(menu_layer_get_layer(menu_layer));
 	menu_layer_destroy(menu_layer);
+	title_layer_destroy(title_layer);
 }
 
 void chat_unload(Window *w) {
@@ -180,13 +180,20 @@ chat_msg * chat_msg_create (char * msg, char* name, char *title, char *time) {
 void resetChatData() {
 	chats[0].num=1;
 	chats[0].msgs=chat_msg_create("Loading","load","Wait a moment","00:00");
-	//		chats[0].msgs=malloc(sizeof(chat_msg));
-	//		chats[0].msgs[0].msg=strdup("Loading...");
-	//		chats[0].msgs[0].name=strdup("NoName");
-	//		chats[0].msgs[0].title=strdup("Wait a moment");
-	//		chats[0].msgs[0].time=strdup("00:00");
+}
+
+time_t lastupdate=0;
+
+void refresh(void * data) {
+
+	time_t now = time(NULL);
+	if (now-lastupdate > 3 * 60) {
+		sendCommand("MESSAGES",myChan->id);
+	}
+	app_timer_register(2*60*1000,refresh,NULL);
 
 }
+
 
 void chatwindow_create(chan_info * chan) {
 
@@ -210,11 +217,12 @@ void chatwindow_create(chan_info * chan) {
 
 	// Setup the window handlers
 	window_set_window_handlers(window, (WindowHandlers) {
-		.appear = &chat_load,
-				.disappear = &chat_disappear,
-				.unload = &chat_unload
+		.appear = chat_load,
+		.disappear = chat_disappear,
+		.unload = chat_unload
 	});
 
+	app_timer_register(60*2*1000, refresh,NULL);
 
 	window_stack_push(window,true);
 
@@ -226,6 +234,8 @@ void chatwindow_update() {
 		layer_mark_dirty(window_get_root_layer(window));
 	}
 }
+
+
 
 void addMessages(char * v, int id) {
 
@@ -287,6 +297,7 @@ void addMessages(char * v, int id) {
 			i++;
 			tok=strtok(NULL,SEP);
 		}
+		lastupdate=time(NULL);
 	}
 	free(m);
 }

@@ -8,6 +8,15 @@
 #ifndef REPLYWINDOW_H_
 #define REPLYWINDOW_H_
 
-void replywindow_create(chan_info * c, char * r);
+typedef struct  {
+	int num;
+	char ** values;
+} ReplyList;
+
+void replywindow_create(chan_info * c, char * r, ReplyList * rl);
+
+ReplyList * addReplies(char * v);
+
+ReplyList * get_myReplies();
 
 #endif /* REPLYWINDOW_H_ */

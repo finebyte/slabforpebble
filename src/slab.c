@@ -2,6 +2,7 @@
 #include "channelwindow.h"
 #include "chatwindow.h"
 #include "util.h"
+#include "replywindow.h"
 
 static Window *window;
 static BitmapLayer *layer_bitmap;
@@ -113,6 +114,21 @@ void rcv(DictionaryIterator *received, void *context) {
 			} else {
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "MESSAGES: NO MESSAGES");
 			}
+		}
+		if (strcmp(op,"REPLIES")==0) {
+			t=dict_find(received,1); // data
+			if (t!=NULL) {
+				addReplies(t->value->cstring);
+			} else {
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "REPLIES: NO REPLIES");
+			}
+		}
+		if (strcmp(op,"CONFIG")==0) {
+			text_layer_set_text(status_tl, "Please configure Slab\nIn the Pebble Android app");
+		}
+		if (strcmp(op,"ERROR")==0) {
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "ERROR!");
+
 		}
 	}
 }
