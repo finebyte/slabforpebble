@@ -30,6 +30,9 @@ typedef struct  {
 static Window *window=NULL;
 static MenuLayer *menu_layer;
 static TitleLayer *title_layer;
+static AppTimer * refresh_timer;
+static time_t lastupdate;
+
 
 chat_group chats[1];
 
@@ -165,6 +168,7 @@ void chat_disappear(Window *window) {
 
 void chat_unload(Window *w) {
 	window_destroy(window);
+	app_timer_cancel(refresh_timer);
 	window=NULL;
 }
 
@@ -182,15 +186,15 @@ void resetChatData() {
 	chats[0].msgs=chat_msg_create("Loading","load","Wait a moment","00:00");
 }
 
-time_t lastupdate=0;
 
 void refresh(void * data) {
 
+	APP_LOG(APP_LOG_LEVEL_DEBUG,"REFRESH");
 	time_t now = time(NULL);
 	if (now-lastupdate > 3 * 60) {
 		sendCommand("MESSAGES",myChan->id);
 	}
-	app_timer_register(2*60*1000,refresh,NULL);
+	refresh_timer=app_timer_register(2*60*1000,refresh,NULL);
 
 }
 
@@ -222,7 +226,7 @@ void chatwindow_create(chan_info * chan) {
 		.unload = chat_unload
 	});
 
-	app_timer_register(60*2*1000, refresh,NULL);
+	refresh_timer = app_timer_register(60*2*1000, refresh,NULL);
 
 	window_stack_push(window,true);
 

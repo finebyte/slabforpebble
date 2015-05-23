@@ -18,6 +18,14 @@ void logComms(char * c, bool tx) {
 
 }
 
+void handle_time_tick(struct tm *tick_time, TimeUnits units_changed) {
+
+	if( (units_changed & MINUTE_UNIT) != 0 ) {
+		/* Minutes changed */
+		logComms("TICK",false);
+	}
+}
+
 void timeout(void* d) {
 	if (status_tl!=NULL) {
 		text_layer_set_text(status_tl, "Timeout connecting\nPlease launch again");
@@ -34,6 +42,7 @@ static void window_load(Window *window) {
 	text_layer_set_text_alignment(status_tl,GTextAlignmentCenter);
 	text_layer_set_text(status_tl, "Waiting for slack...");
 	layer_add_child(window_get_root_layer(window),text_layer_get_layer(status_tl));
+	tick_timer_service_subscribe(MINUTE_UNIT, handle_time_tick);
 	app_timer_register(10000,timeout,NULL);
 }
 
