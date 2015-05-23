@@ -87,8 +87,8 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 	graphics_draw_text(ctx,
 			chats[cell_index->section].msgs[cell_index->row].msg,
 			fonts_get_system_font(FONT_KEY_GOTHIC_18),
-			GRect(b.origin.x,b.origin.y+14,b.size.w,b.size.h),
-			GTextOverflowModeFill,
+			GRect(b.origin.x,b.origin.y+14,b.size.w,b.size.h-18),
+			GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft,
 			NULL);
 
@@ -115,8 +115,8 @@ int16_t chat_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_in
 	GSize s = graphics_text_layout_get_content_size(
 			chats[cell_index->section].msgs[cell_index->row].msg,
 			fonts_get_system_font(FONT_KEY_GOTHIC_18),
-			GRect(0,0,144,168),
-			GTextOverflowModeFill,
+			GRect(0,0,144,144-28),
+			GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft);
 
 	return s.h + 18 + 10;
@@ -137,7 +137,7 @@ void chat_load(Window *window) {
 	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 
 	// Create the menu layer
-	menu_layer = menu_layer_create(GRect(0,24,144,168));
+	menu_layer = menu_layer_create(GRect(0,24,144,144));
 
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
