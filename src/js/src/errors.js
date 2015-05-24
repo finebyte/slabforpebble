@@ -25,12 +25,12 @@ var Errors = (function () {
         body.firmware = Utils.serializeFirmware(watch.firmware);
       }
       body.accountToken = Pebble.getAccountToken();
-      superagent.post(AppInfo.settings.errorUrl).send(body).end(function (err) {
-        console.log(err);
+      superagent.post(AppInfo.settings.errorUrl).send(body).end(function () {
+        // TODO: Maybe handle errors here?
       });
     }
     catch (ex) {
-      throw ex;
+      // TODO: Maybe handle errors here?
     }
   }
 

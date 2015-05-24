@@ -55,6 +55,7 @@ var quickRefreshChannel = null;
 
 
 Pebble.addEventListener('ready', function () {
+  console.log('Ready!');
   if (getSlackToken() && getSlackToken().length) {
     Slack.setAccessToken(getSlackToken());
     rtmStart();
@@ -274,7 +275,7 @@ function sendMessages(id, messages, callback) {
           console.log(err);
           return callback();
         }
-        if ((messageData + str).length <= maxMessageLength) {
+        if (lengthInUtf8Bytes(messageData + str) <= maxMessageLength) {
           messageData += DELIM + str;
           numMessages += 1;
         }
@@ -318,8 +319,7 @@ function ack(event) {
 function nack(context) {
   return function (event) {
     console.log('NACK!');
-    console.log(JSON.stringify(event, null, 2));
-    Errors.send(event, context);
+    Errors.send(event, context + ':NACK');
   };
 }
 
@@ -371,4 +371,9 @@ function getSlackToken() {
     return DEBUG_ACCESS_TOKEN;
   }
   return store.get('slackAccessToken');
+}
+
+function lengthInUtf8Bytes(str) {
+  var m = encodeURIComponent(str).match(/%[89ABab]/g);
+  return str.length + (m ? m.length : 0);
 }
