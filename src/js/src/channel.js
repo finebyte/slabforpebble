@@ -1,7 +1,44 @@
+/*
+
+Slab v1.0
+
+----------------------
+
+The MIT License (MIT)
+
+Copyright © 2015 James Turck & Matthew Tole
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------
+
+src/js/src/channel.js
+
+*/
+
+
 /* global _ */
 /* global DELIM */
+/* global DELIM_DEBUG */
 /* global Message */
 /* global Users */
+
 
 function Channel(data) {
   this.data = data;
@@ -9,8 +46,8 @@ function Channel(data) {
   this.messages = [];
 }
 
-Channel.create = function (data) {
-  return new Channel(data);
+Channel.prototype.update = function (data) {
+  this.data = data;
 };
 
 Channel.prototype.serialize = function () {
@@ -19,7 +56,7 @@ Channel.prototype.serialize = function () {
     this.getDisplayName(),
     this.getUnreadCount()
   ];
-  console.log('Channel Serialised: ' + fields.join(' | '));
+  console.log('Channel Serialised: ' + fields.join(DELIM_DEBUG));
   return fields.join(DELIM);
 };
 

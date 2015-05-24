@@ -32,6 +32,7 @@ src/js/src/main.js
 
 */
 
+
 /* global AppInfo */
 /* global async */
 /* global DEBUG_ACCESS_TOKEN */
@@ -41,23 +42,24 @@ src/js/src/main.js
 /* global State */
 /* global store */
 /* global Users */
+/* exported DELIM_DEBUG */
+
 
 var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
+var DELIM_DEBUG = '^';
 var maxBufferSize = 1000;
 var sendMessageTimer = null;
 var quickRefreshChannel = null;
 
+
 Pebble.addEventListener('ready', function () {
-  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
-    Slack.setAccessToken(DEBUG_ACCESS_TOKEN);
-  }
-  else if (store.get('slackAccessToken')) {
-    Slack.setAccessToken();
+  if (getSlackToken() && getSlackToken().length) {
+    Slack.setAccessToken(getSlackToken());
+    rtmStart();
   }
   else {
     MessageQueue.sendAppMessage({ op: 'CONFIG' }, ack, nack);
   }
-  rtmStart();
 });
 
 Pebble.addEventListener('showConfiguration', function () {
@@ -70,9 +72,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
   }
   try {
     var config = JSON.parse(event.response);
-    var currentToken = ((typeof DEBUG_ACCESS_TOKEN !== 'undefined') ?
-      DEBUG_ACCESS_TOKEN : store.get('slackAccessToken'));
-    var newToken = currentToken !== config.accessToken;
+    var newToken = getSlackToken() !== config.accessToken;
     if (newToken) {
       Slack.setAccessToken(config.accessToken);
       store.set('slackAccessToken', config.accessToken);
@@ -89,7 +89,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
 Pebble.addEventListener('appmessage', function (event) {
   var op = event.payload.op;
   var data = event.payload.data;
-  var dataArray = data.split(String.fromCharCode(AppInfo.settings.delimiter));
+  var dataArray = data.split(DELIM);
 
   switch (op) {
     case 'MESSAGES':
@@ -123,6 +123,7 @@ Pebble.addEventListener('appmessage', function (event) {
   }
 });
 
+
 function rtmStart() {
   Slack.post('rtm.start', {}, function (err, data) {
     if (err) {
@@ -155,6 +156,12 @@ function rtmConnect(url) {
         break;
       case 'user_typing':
       case 'presence_change':
+        break;
+      case 'im_marked':
+        break;
+      case 'channel_marked':
+        break;
+      case 'group_marked':
         break;
       default:
         console.log(JSON.stringify(data));
@@ -297,13 +304,14 @@ function postMessage(id, message, callback) {
   // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
 }
 
-function ack() {
+function ack(event) {
   console.log('ACK!');
+  console.log(JSON.stringify(event, null, 2));
 }
 
 function nack(event) {
   console.log('NACK!');
-  console.log(JSON.stringify(event));
+  console.log(JSON.stringify(event, null, 2));
 }
 
 function idType(id) {
@@ -319,12 +327,16 @@ function idType(id) {
 
 function sendReplies() {
   var replies = store.get('replies', []);
+  if (!replies.length) {
+    return;
+  }
   var data = replies.map(function (reply) { return reply.text; });
   data.unshift(replies.length);
-  MessageQueue.sendAppMessage({
+  var message = {
     op: 'REPLIES',
     data: data.join(DELIM)
-  }, ack, nack);
+  };
+  MessageQueue.sendAppMessage(message, ack, nack);
 }
 
 function buildConfigUrl() {
@@ -335,24 +347,26 @@ function buildConfigUrl() {
   if (watch) {
     query.push(['model', watch.model]);
     query.push(['language', watch.language]);
-    if (watch.firmware.suffix && watch.firmware.suffix.length) {
-      query.push(['firmware',
-        sprintf('%d.%d.%d-%s', watch.firmware.major, watch.firmware.minor,
-          watch.firmware.patch, watch.firmware.suffix)]);
-    }
-    else {
-      query.push(['firmware',
-        sprintf('%d.%d.%d', watch.firmware.major, watch.firmware.minor,
-          watch.firmware.patch)]);
-    }
+    query.push(['firmware', serializeFirmware(watch.firmware)]);
   }
   query.push(['account_token', Pebble.getAccountToken()]);
-  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
-    query.push(['slack_access_token', DEBUG_ACCESS_TOKEN]);
-  }
-  else if (store.get('slackAccessToken')) {
-    query.push(['slack_access_token', store.get('slackAccessToken')]);
+  if (getSlackToken() && getSlackToken().length) {
+    query.push(['slack_access_token', getSlackToken()]);
   }
   var queryString = query.map(function (q) { return q.join('='); }).join('&');
   return AppInfo.settings.configPage + '?' + queryString;
+}
+
+function getSlackToken() {
+  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
+    return DEBUG_ACCESS_TOKEN;
+  }
+  return store.get('slackAccessToken');
+}
+
+function serializeFirmware(fw) {
+  if (fw.suffix && fw.suffix.length) {
+    return sprintf('%d.%d.%d-%s', fw.major, fw.minor, fw.patch, fw.suffix);
+  }
+  return sprintf('%d.%d.%d', fw.major, fw.minor, fw.patch);
 }

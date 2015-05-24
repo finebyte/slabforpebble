@@ -1,16 +1,49 @@
+/*
+
+Slab v1.0
+
+----------------------
+
+The MIT License (MIT)
+
+Copyright © 2015 James Turck & Matthew Tole
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+--------------------
+
+src/js/src/message.js
+
+*/
+
+
 /* global moment */
 /* global async */
 /* global Users */
 /* global EmojiMap */
 /* global DELIM */
+/* global DELIM_DEBUG */
+
 
 function Message(data) {
   this.data = data;
 }
-
-Message.create = function (data) {
-  return new Message(data);
-};
 
 Message.prototype.serialize = function (callback) {
   var _this = this;
@@ -22,9 +55,11 @@ Message.prototype.serialize = function (callback) {
       if (err) {
         return callback(err);
       }
-      return callback(null, [
+      var data = [
         name, _this.getTime(), text.length ? text : ' '
-      ].join(DELIM));
+      ];
+      console.log('Message Serialized: ' + data.join(DELIM_DEBUG));
+      return callback(null, data.join(DELIM));
     });
   });
 };
@@ -90,6 +125,7 @@ Message.prototype.getText = function (callback) {
 Message.prototype.equals = function (other) {
   return other.data.ts === this.data.ts;
 };
+
 
 function processUserMention(text, match, callback) {
   var userId = match.substr(2, match.length - 3);
