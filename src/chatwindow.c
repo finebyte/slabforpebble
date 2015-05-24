@@ -74,6 +74,9 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 	GRect b = layer_get_bounds(cell_layer);
 
+#ifdef PBL_PLATFORM_APLITE
+	graphics_context_set_text_color(ctx,GColorBlack);
+#endif
 
 	graphics_draw_text(ctx,
 			chats[cell_index->section].msgs[cell_index->row].title,
@@ -97,7 +100,8 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 // Here we capture when a user selects a menu item
 void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
-	if (strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) {
+	if ((strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) ||
+			(myChan->id[0]=='D')) {
 		replywindow_create(myChan,"", get_myReplies());
 	} else {
 		static char replyToBuffer[100];
