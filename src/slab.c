@@ -6,7 +6,7 @@
 
 static Window *window;
 static BitmapLayer *layer_bitmap;
-static GBitmap *logo;
+static GBitmap *splash;
 static TextLayer * status_tl;
 
 void logComms(char * c, bool tx) {
@@ -33,13 +33,14 @@ void timeout(void* d) {
 }
 
 static void window_load(Window *window) {
-	logo = gbitmap_create_with_resource(RESOURCE_ID_LOGO_SLACK);
-	layer_bitmap = bitmap_layer_create(GRect(32, 32, 80, 80));
-	bitmap_layer_set_bitmap(layer_bitmap, logo);
-	bitmap_layer_set_compositing_mode(layer_bitmap, GCompOpSet);
+	splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
+	layer_bitmap = bitmap_layer_create(GRect(0, 0, 144, 168));
+	bitmap_layer_set_bitmap(layer_bitmap, splash);
 	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(layer_bitmap));
-	status_tl=text_layer_create(GRect(0,120,144,60));
+	status_tl=text_layer_create(GRect(0,128,144,60));
 	text_layer_set_text_alignment(status_tl,GTextAlignmentCenter);
+	text_layer_set_text_color(status_tl,GColorWhite);
+	text_layer_set_background_color(status_tl,GColorBlack);
 	text_layer_set_text(status_tl, "Waiting for slack...");
 	layer_add_child(window_get_root_layer(window),text_layer_get_layer(status_tl));
 	tick_timer_service_subscribe(MINUTE_UNIT, handle_time_tick);
@@ -55,7 +56,7 @@ static void window_disappear(Window *window) {
 
 static void window_unload(Window *w) {
 	bitmap_layer_destroy(layer_bitmap);
-	gbitmap_destroy(logo);
+	gbitmap_destroy(splash);
 	text_layer_destroy(status_tl);
 	status_tl=NULL;
 	window=NULL;
@@ -166,6 +167,9 @@ static void init(void) {
 		.appear = window_appear,
 		.disappear = window_disappear,
 	});
+	#ifdef PBL_SDK_2
+	window_set_fullscreen(window, true);
+	#endif
 	const bool animated = true;
 
 

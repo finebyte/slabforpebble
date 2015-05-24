@@ -19,8 +19,8 @@
     "media": [
       {
         "type": "png",
-        "file": "images/slack-logo.png",
-        "name": "LOGO_SLACK"
+        "file": "images/splash.png",
+        "name": "SPLASH"
       }
     ]
   },
