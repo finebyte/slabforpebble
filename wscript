@@ -5,7 +5,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright © 2015 James Turck & Matthew Tole
+# Copyright © 2015 finebyte & Matthew Tole
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -168,7 +168,7 @@ Slab v{0}
 
 The MIT License (MIT)
 
-Copyright © {1} James Turck & Matthew Tole
+Copyright © {1} finebyte & Matthew Tole
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
