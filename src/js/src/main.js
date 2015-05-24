@@ -38,10 +38,12 @@ src/js/src/main.js
 /* global DEBUG_ACCESS_TOKEN */
 /* global MessageQueue */
 /* global Slack */
+/* global Errors */
 /* global sprintf */
 /* global State */
 /* global store */
 /* global Users */
+/* global Utils */
 /* exported DELIM_DEBUG */
 
 
@@ -58,7 +60,7 @@ Pebble.addEventListener('ready', function () {
     rtmStart();
   }
   else {
-    MessageQueue.sendAppMessage({ op: 'CONFIG' }, ack, nack);
+    MessageQueue.sendAppMessage({ op: 'CONFIG' }, ack, nack('ready:CONFIG'));
   }
 });
 
@@ -82,6 +84,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
     sendReplies();
   }
   catch (ex) {
+    Errors.send(ex, 'webviewclosed:catch');
     console.error(ex);
   }
 });
@@ -97,10 +100,12 @@ Pebble.addEventListener('appmessage', function (event) {
       State.setActiveChannel(channel.id);
       fetchMessages(data, function (err) {
         if (err) {
+          Errors.send(err, 'appmessage:MESSAGES:fetchMessages');
           return console.log(err);
         }
         sendMessages(data, channel.getMessages(), function (err) {
           if (err) {
+            Errors.send(err, 'appmessage:MESSAGES:sendMessages');
             return console.log(err);
           }
         });
@@ -110,6 +115,7 @@ Pebble.addEventListener('appmessage', function (event) {
       postMessage(dataArray[0], dataArray[1], function (err) {
         if (err) {
           MessageQueue.sendAppMessage({ op: 'ERROR', data: err.toString() });
+          Errors.send(err, 'appmessage:MESSAGE:postMessage');
           return console.log(err);
         }
       });
@@ -127,6 +133,7 @@ Pebble.addEventListener('appmessage', function (event) {
 function rtmStart() {
   Slack.post('rtm.start', {}, function (err, data) {
     if (err) {
+      Errors.send(err, 'rtmStart:rtm.start');
       return console.log(err);
     }
     data.channels.forEach(function (channel) {
@@ -185,6 +192,7 @@ function rtmMessage(data) {
       sendMessageTimer = null;
       sendMessages(data.channel, channel.getMessages(), function (err) {
         if (err) {
+          Errors.send(err, 'rtmMessage:sendMessages');
           console.log(err);
         }
       });
@@ -196,15 +204,15 @@ function sendInitialState() {
   MessageQueue.sendAppMessage({
     op: 'CHANNELS',
     data: State.serializeChannels(State.getChannels('channel', true))
-  }, ack, nack);
+  }, ack, nack('sendInitialState:CHANNELS'));
   MessageQueue.sendAppMessage({
     op: 'GROUPS',
     data: State.serializeChannels(State.getChannels('group', true))
-  }, ack, nack);
+  }, ack, nack('sendInitialState:GROUPS'));
   MessageQueue.sendAppMessage({
     op: 'IMS',
     data: State.serializeChannels(State.getChannels('im', true))
-  }, ack, nack);
+  }, ack, nack('sendInitialState:IMS'));
   sendReplies();
 }
 
@@ -223,11 +231,14 @@ function fetchMessages(id, callback) {
       apiMethod = 'im.history';
       break;
     default:
-      return callback(new Error(sprintf('Unknown type for id %s', id)));
+      var err = new Error(sprintf('Unknown type for id %s', id));
+      Errors.send(err, 'fetchMessages:default');
+      return callback(err);
   }
 
   Slack.get(apiMethod, { channel: id }, function (err, data) {
     if (err) {
+      Errors.send(err, 'fetchMessages:Slack.get');
       return callback(err);
     }
     data.messages.forEach(function (message) {
@@ -256,13 +267,8 @@ function sendMessages(id, messages, callback) {
       }
       message.serialize(function (err, str) {
         if (err) {
+          Errors.send(err, 'sendMessages:message.serialize');
           console.log(err);
-          return callback();
-        }
-        if (typeof str === 'undefined') {
-          console.log('UNDEFINED!');
-          console.log(JSON.stringify(message, null, 2));
-          console.log('UNDEFINED!');
           return callback();
         }
         if ((messageData + str).length <= maxMessageLength) {
@@ -277,7 +283,7 @@ function sendMessages(id, messages, callback) {
     },
     function (err) {
       if (err) {
-        // TODO: Send this error message somewhere!
+        Errors.send(err, 'sendMessages:async.whilst');
         console.log(err);
         return;
       }
@@ -287,9 +293,7 @@ function sendMessages(id, messages, callback) {
       };
       MessageQueue.sendAppMessage(payload, function () {
         callback();
-      }, function () {
-        callback(new Error('NACK!'));
-      });
+      }, nack('sendMessages:MESSAGES'));
     });
 }
 
@@ -309,9 +313,10 @@ function ack(event) {
   console.log(JSON.stringify(event, null, 2));
 }
 
-function nack(event) {
-  console.log('NACK!');
-  console.log(JSON.stringify(event, null, 2));
+function nack(context) {
+  return function (event) {
+    Errors.send(event, context);
+  };
 }
 
 function idType(id) {
@@ -336,7 +341,7 @@ function sendReplies() {
     op: 'REPLIES',
     data: data.join(DELIM)
   };
-  MessageQueue.sendAppMessage(message, ack, nack);
+  MessageQueue.sendAppMessage(message, ack, nack('sendReplies:REPLIES'));
 }
 
 function buildConfigUrl() {
@@ -347,7 +352,7 @@ function buildConfigUrl() {
   if (watch) {
     query.push(['model', watch.model]);
     query.push(['language', watch.language]);
-    query.push(['firmware', serializeFirmware(watch.firmware)]);
+    query.push(['firmware', Utils.serializeFirmware(watch.firmware)]);
   }
   query.push(['account_token', Pebble.getAccountToken()]);
   if (getSlackToken() && getSlackToken().length) {
@@ -362,11 +367,4 @@ function getSlackToken() {
     return DEBUG_ACCESS_TOKEN;
   }
   return store.get('slackAccessToken');
-}
-
-function serializeFirmware(fw) {
-  if (fw.suffix && fw.suffix.length) {
-    return sprintf('%d.%d.%d-%s', fw.major, fw.minor, fw.patch, fw.suffix);
-  }
-  return sprintf('%d.%d.%d', fw.major, fw.minor, fw.patch);
 }

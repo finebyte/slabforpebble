@@ -49,11 +49,13 @@ Message.prototype.serialize = function (callback) {
   var _this = this;
   this.getUserName(function (err, name) {
     if (err) {
-      return callback(err);
+      console.log('Error getting username: ' + err);
+      name = _this.data.user;
     }
     _this.getText(function (err, text) {
       if (err) {
-        return callback(err);
+        console.log('Error getting message text: ' + err);
+        text = _this.data.text;
       }
       var data = [
         name, _this.getTime(), text.length ? text : ' '
