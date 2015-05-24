@@ -77,6 +77,8 @@ def build(ctx):
     js_sources = [
         '../src/js/src/generated/appinfo.js',
         '../src/js/src/hacks.js',
+        '../src/js/src/utils.js',
+        '../src/js/src/errors.js',
         '../src/js/src/emoji.js',
         '../src/js/src/users.js',
         '../src/js/src/channel.js',

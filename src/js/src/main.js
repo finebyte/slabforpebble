@@ -312,12 +312,13 @@ function postMessage(id, message, callback) {
 }
 
 function ack(event) {
-  console.log('ACK!');
-  console.log(JSON.stringify(event, null, 2));
+  console.log('ACK! ' + event.data.transactionId);
 }
 
 function nack(context) {
   return function (event) {
+    console.log('NACK!');
+    console.log(JSON.stringify(event, null, 2));
     Errors.send(event, context);
   };
 }

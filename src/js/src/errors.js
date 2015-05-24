@@ -12,7 +12,7 @@ var Errors = (function () {
   function send(err, context) {
     try {
       var body = {
-        err: err,
+        err: err ? err.message || err.toString() : 'Unknown error',
         context: context,
         time: new Date(),
         version: AppInfo.version
@@ -25,10 +25,12 @@ var Errors = (function () {
         body.firmware = Utils.serializeFirmware(watch.firmware);
       }
       body.accountToken = Pebble.getAccountToken();
-      superagent.post(AppInfo.settings.errorUrl).data(body).end();
+      superagent.post(AppInfo.settings.errorUrl).send(body).end(function (err) {
+        console.log(err);
+      });
     }
     catch (ex) {
-      console.log(ex);
+      throw ex;
     }
   }
 

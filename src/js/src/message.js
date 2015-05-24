@@ -39,7 +39,6 @@ src/js/src/message.js
 /* global EmojiMap */
 /* global Errors */
 /* global DELIM */
-/* global DELIM_DEBUG */
 
 
 function Message(data) {
@@ -58,11 +57,10 @@ Message.prototype.serialize = function (callback) {
         Errors.send(err, 'Message.serialize:getText');
         text = _this.data.text;
       }
-      var data = [
+      var msg = [
         name, _this.getTime(), text.length ? text : ' '
       ];
-      console.log('Message Serialized: ' + data.join(DELIM_DEBUG));
-      return callback(null, data.join(DELIM));
+      return callback(null, msg.join(DELIM));
     });
   });
 };
@@ -95,7 +93,6 @@ Message.prototype.getText = function (callback) {
   if (!matches) {
     return callback(null, text);
   }
-  console.log(matches);
   async.eachSeries(matches, function (match, callback) {
     var matchType = match.substr(1, 2);
     switch (matchType) {
@@ -165,7 +162,12 @@ function findSurrogatePair(point) {
 function processEmoji(text, code) {
   var emoji = EmojiMap[code.substr(1, code.length - 2)];
   if (emoji) {
-    text = text.replace(code, findSurrogatePair(emoji));
+    if (emoji > 0xffff) {
+      text = text.replace(code, findSurrogatePair(emoji));
+    }
+    else {
+      text = text.replace(code, String.fromCharCode(emoji));
+    }
   }
   return text;
 }
