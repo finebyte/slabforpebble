@@ -1,4 +1,4 @@
-# Slab for Pebble
+![Slab for Pebble banner](https://raw.githubusercontent.com/finebyte/slabforpebble/master/appstore/banner01.png)
 
 :construction: **WORK IN PROGRESS** :construction:
 
