@@ -49,10 +49,7 @@ var Users = (function () {
 
   function load(rawUsers) {
     rawUsers.forEach(function (user) {
-      if (findById(user.id)) {
-        console.log('Duplicate user!');
-      }
-      else {
+      if (!findById(user.id)) {
         users.push(user);
       }
     });
@@ -65,7 +62,6 @@ var Users = (function () {
   function loadById(id, callback) {
     Slack.get('users.info', { user: id }, function (err, data) {
       if (err) {
-        console.log(id);
         return callback(err);
       }
       users.push(data.user);

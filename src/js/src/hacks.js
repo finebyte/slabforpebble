@@ -36,3 +36,7 @@ src/js/src/hacks.js
 if (!window.location) {
   window.location = '';
 }
+
+if (!Pebble.getActiveWatchInfo) {
+  Pebble.getActiveWatchInfo = function () { return null; };
+}

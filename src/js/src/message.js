@@ -37,6 +37,7 @@ src/js/src/message.js
 /* global async */
 /* global Users */
 /* global EmojiMap */
+/* global Errors */
 /* global DELIM */
 /* global DELIM_DEBUG */
 
@@ -49,12 +50,12 @@ Message.prototype.serialize = function (callback) {
   var _this = this;
   this.getUserName(function (err, name) {
     if (err) {
-      console.log('Error getting username: ' + err);
+      Errors.send(err, 'Message.serialize:getUserName');
       name = _this.data.user;
     }
     _this.getText(function (err, text) {
       if (err) {
-        console.log('Error getting message text: ' + err);
+        Errors.send(err, 'Message.serialize:getText');
         text = _this.data.text;
       }
       var data = [
@@ -137,6 +138,7 @@ function processUserMention(text, match, callback) {
   }
   Users.loadById(userId, function (err, user) {
     if (err) {
+      Errors.send(err, 'processUserMention:Users.loadById');
       return callback(err);
     }
     if (user) {

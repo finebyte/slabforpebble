@@ -124,6 +124,9 @@ Pebble.addEventListener('appmessage', function (event) {
       maxBufferSize = parseInt(data, 10);
       console.log('Setting maximum buffer size: ' + maxBufferSize);
       break;
+    case 'ERROR':
+      Errors.send(new Error(data), 'watch:ERROR');
+      break;
     default:
     // Pass!
   }
