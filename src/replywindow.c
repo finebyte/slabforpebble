@@ -78,11 +78,11 @@ void reply_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *d
 		snprintf(msg,100,"%s%c%s%s", rw->replyChan->id,0x7f,rw->replyTo,rw->replies->values[cell_index->row]);
 		sendCommand("MESSAGE",msg);
 		bool pop2 = rw->replies->values==emojiList;
-		window_stack_pop(true);
+		window_stack_pop(false);
 		if (pop2) {
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"2nd pop - skipping");
-//			window_stack_pop(false);
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"2nd popped");
+//			APP_LOG(APP_LOG_LEVEL_DEBUG,"2nd pop - skipping");
+			window_stack_pop(false);
+//			APP_LOG(APP_LOG_LEVEL_DEBUG,"2nd popped");
 		}
 	}
 }
@@ -92,7 +92,7 @@ int16_t reply_get_header_height_callback( MenuLayer *menu_layer, uint16_t sectio
 }
 
 // This initializes the menu upon window load
-void replywindow_load(Window *window) {
+void replywindow_appear(Window *window) {
 
 	ReplyWindow * rw = (ReplyWindow*)window_get_user_data(window);
 
@@ -131,25 +131,18 @@ void replywindow_load(Window *window) {
 }
 
 void replywindow_disappear(Window *window) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"rw dis");
-
 	ReplyWindow * rw = (ReplyWindow*)window_get_user_data(window);
 
 	// Destroy the menu layer
 	layer_remove_from_parent(menu_layer_get_layer(rw->menu_layer));
 	menu_layer_destroy(rw->menu_layer);
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"rw dis2");
 }
 
 void replywindow_unload(Window *window) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"rw un");
-
 	ReplyWindow * rw = (ReplyWindow*)window_get_user_data(window);
 	free(rw);
 
 	window_destroy(window);
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"rw un2");
-
 }
 
 void replywindow_create(chan_info * c, char * replyto, ReplyList * rl) {
@@ -177,7 +170,7 @@ void replywindow_create(chan_info * c, char * replyto, ReplyList * rl) {
 
 		// Setup the window handlers
 		window_set_window_handlers(rw->window, (WindowHandlers) {
-			.appear = &replywindow_load,
+			.appear = &replywindow_appear,
 			.disappear = &replywindow_disappear,
 			.unload = &replywindow_unload
 		});
