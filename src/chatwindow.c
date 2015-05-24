@@ -74,6 +74,9 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 	GRect b = layer_get_bounds(cell_layer);
 
+#ifdef PBL_PLATFORM_APLITE
+	graphics_context_set_text_color(ctx,GColorBlack);
+#endif
 
 	graphics_draw_text(ctx,
 			chats[cell_index->section].msgs[cell_index->row].title,
