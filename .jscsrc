@@ -9,5 +9,6 @@
 	},
 	"requirePaddingNewLinesAfterBlocks": null,
 	"requirePaddingNewLinesBeforeLineComments": null,
+	"disallowMultipleLineBreaks": null,
 	"maximumLineLength": 80
 }

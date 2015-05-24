@@ -1,6 +1,6 @@
 /*
 
-Slab v1.0
+Slab v0.1
 
 ----------------------
 
@@ -31,7 +31,6 @@ THE SOFTWARE.
 src/js/src/user.js
 
 */
-
 
 /* global _ */
 /* global Slack */
