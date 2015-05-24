@@ -8,6 +8,7 @@ static Window *window;
 static BitmapLayer *layer_bitmap;
 static GBitmap *logo;
 static TextLayer * status_tl;
+static AppTimer * login_timer=NULL;
 
 void logComms(char * c, bool tx) {
 	static char time_text[] = "HH:MM:SS";
@@ -43,7 +44,7 @@ static void window_load(Window *window) {
 	text_layer_set_text(status_tl, "Waiting for slack...");
 	layer_add_child(window_get_root_layer(window),text_layer_get_layer(status_tl));
 	tick_timer_service_subscribe(MINUTE_UNIT, handle_time_tick);
-	app_timer_register(10000,timeout,NULL);
+	login_timer=app_timer_register(10000,timeout,NULL);
 }
 
 
@@ -133,6 +134,9 @@ void rcv(DictionaryIterator *received, void *context) {
 			}
 		}
 		if (strcmp(op,"CONFIG")==0) {
+			if (login_timer!=NULL) {
+				app_timer_cancel(login_timer);
+			}
 			text_layer_set_text(status_tl, "Please configure Slab\nIn the Pebble Android app");
 		}
 		if (strcmp(op,"ERROR")==0) {
