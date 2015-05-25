@@ -77,7 +77,7 @@ void rcv(DictionaryIterator *received, void *context) {
 	t=dict_find(received,0); // key 0 tells me what sort of message
 	if (t!=NULL) {
 		char * op = t->value->cstring;
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "rcv %s", op);
+		logComms(op,false);
 		if (strcmp(op,"CHANNELS")==0) {
 			t=dict_find(received,1); // data
 			if (t!=NULL) {
