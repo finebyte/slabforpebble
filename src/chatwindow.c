@@ -132,7 +132,6 @@ void chat_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t 
 
 // This initializes the menu upon window load
 void chat_load(Window *window) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"chat_load_create");
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
@@ -198,7 +197,9 @@ void refresh(void * data) {
 	if (now-lastupdate > 3 * 60) {
 		sendCommand("MESSAGES",myChan->id);
 	}
-	refresh_timer=app_timer_register(2*60*1000,refresh,NULL);
+
+	app_timer_reschedule(refresh_timer,2*60*1000);
+//	refresh_timer=app_timer_register(2*60*1000,refresh,NULL);
 
 }
 
@@ -232,6 +233,7 @@ void chatwindow_create(chan_info * chan) {
 
 	refresh_timer = app_timer_register(60*2*1000, refresh,NULL);
 
+
 	window_stack_push(window,true);
 
 }
@@ -247,12 +249,13 @@ void chatwindow_update() {
 
 void addMessages(char * v, int id) {
 
-	char * m=strdup(v);
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"addmessages %s", m);
+	APP_LOG(APP_LOG_LEVEL_DEBUG,"addmessages %s", v);
+	delMessages();
 	if (v!=NULL) {
 		char * tok = strtok(v,SEP);
 		if (tok!=NULL) {
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"chat for chan %s", tok);
+			APP_LOG(APP_LOG_LEVEL_DEBUG,"%u chat for chan %s chat_msg=%d", heap_bytes_free(), tok, sizeof(chat_msg));
+
 		}
 		tok=strtok(NULL,SEP);
 
@@ -262,7 +265,11 @@ void addMessages(char * v, int id) {
 			chats[id].msgs = malloc (sizeof(chat_msg) * chats[id].num);
 		}
 
-		chats[0].msgs[0]=*chat_msg_create("New Message","newmsg","Contribute","00:00");
+//		chats[0].msgs[0]=*chat_msg_create("New Message","newmsg","Contribute","00:00");
+		chats[0].msgs[0].title=strdup("Contribute");
+		chats[0].msgs[0].msg=strdup("New Message");
+		chats[0].msgs[0].time=strdup("00:00");
+		chats[0].msgs[0].name=strdup("newmsg");
 
 		uint8_t i = 1;
 		tok=strtok(NULL,SEP);
@@ -285,15 +292,15 @@ void addMessages(char * v, int id) {
 
 					int title_len=strlen(chats[id].msgs[i].name)+1+
 							strlen(chats[id].msgs[i].time)+1+2;
-					chats[id].msgs[i].title = malloc(title_len);
+					chats[id].msgs[i].title = malloc(title_len * sizeof(char));
 					snprintf(chats[id].msgs[i].title,title_len,"%s %s",
 							chats[id].msgs[i].time,
 							chats[id].msgs[i].name);
-					APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
-							heap_bytes_free(),
-							i,
-							chats[id].msgs[i].title,
-							chats[id].msgs[i].msg);
+//					APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
+//							heap_bytes_free(),
+//							i,
+//							chats[id].msgs[i].title,
+//							chats[id].msgs[i].msg);
 				} else {
 					APP_LOG(APP_LOG_LEVEL_ERROR,"Bad chat msg, NULL msg for %s", chats[id].msgs[i].name );
 
@@ -307,7 +314,6 @@ void addMessages(char * v, int id) {
 		}
 		lastupdate=time(NULL);
 	}
-	free(m);
 }
 
 

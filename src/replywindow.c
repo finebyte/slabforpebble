@@ -158,13 +158,10 @@ void replywindow_create(chan_info * c, char * replyto, ReplyList * rl) {
 #endif
 
 		if (rl==NULL) {
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"rl==NULL");
-
 			rw->replies=&staticRL;
 			rw->replies->values=staticReplies;
 			rw->replies->num=ARRAY_LENGTH(staticReplies);
 		} else {
-			APP_LOG(APP_LOG_LEVEL_DEBUG,"rl!=NULL");
 			rw->replies=rl;
 		}
 
