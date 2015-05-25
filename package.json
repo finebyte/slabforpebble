@@ -1,6 +1,6 @@
 {
   "name": "slab-for-pebble",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
   "devDependencies": {
     "jscs": "^1.13.1",
     "jshint": "^2.7.0",
-    "jshint-stylish-ex": "^0.2.0",
+    "jshint-stylish-ex": "^0.3.0",
     "uglifyjs": "^2.4.10",
     "jscs-stylish": "^0.3.1"
   },
