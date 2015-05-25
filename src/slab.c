@@ -138,7 +138,7 @@ void rcv(DictionaryIterator *received, void *context) {
 			if (login_timer!=NULL) {
 				app_timer_cancel(login_timer);
 			}
-			text_layer_set_text(status_tl, "Please configure Slab\nIn the Pebble Android app");
+			text_layer_set_text(status_tl, "Please configure Slab\nIn the Pebble app");
 		}
 		if (strcmp(op,"ERROR")==0) {
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "ERROR!");
