@@ -5,14 +5,11 @@
  *      Author: turcja
  */
 
-
-
 #include "pebble.h"
 #include "util.h"
 #include "channelwindow.h"
 #include "title_layer.h"
 #include "replywindow.h"
-
 
 typedef struct {
 	chan_info * replyChan;
@@ -23,10 +20,9 @@ typedef struct {
 	ReplyList * replies;
 } ReplyWindow;
 
-
 char * staticReplies[]={"Emoji","Yes","No","Everything is awesome"};
 ReplyList staticRL;
-char * emojiList[]={"😛","😄","😄","😎","😖","💩","🍺"};
+char * emojiList[]={"😛","😄","😒","😎","😖","💩","🍺","🎉","❤️"};
 ReplyList emojiRL;
 
 ReplyList * myReplies=NULL;
@@ -80,9 +76,7 @@ void reply_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *d
 		bool pop2 = rw->replies->values==emojiList;
 		window_stack_pop(false);
 		if (pop2) {
-//			APP_LOG(APP_LOG_LEVEL_DEBUG,"2nd pop - skipping");
 			window_stack_pop(false);
-//			APP_LOG(APP_LOG_LEVEL_DEBUG,"2nd popped");
 		}
 	}
 }
@@ -136,6 +130,7 @@ void replywindow_disappear(Window *window) {
 	// Destroy the menu layer
 	layer_remove_from_parent(menu_layer_get_layer(rw->menu_layer));
 	menu_layer_destroy(rw->menu_layer);
+	title_layer_destroy(rw->title_layer);
 }
 
 void replywindow_unload(Window *window) {
