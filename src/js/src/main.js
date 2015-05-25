@@ -34,6 +34,7 @@ src/js/src/main.js
 
 
 /* global AppInfo */
+/* global Analytics */
 /* global async */
 /* global DEBUG_ACCESS_TOKEN */
 /* global MessageQueue */
@@ -52,10 +53,14 @@ var DELIM_DEBUG = '^';
 var maxBufferSize = 1000;
 var sendMessageTimer = null;
 var quickRefreshChannel = null;
-
+var analytics = null;
 
 Pebble.addEventListener('ready', function () {
   console.log('Ready!');
+  setupAnalytics();
+  if (!AppInfo.debug) {
+    analytics.trackEvent('app', 'start');
+  }
   if (getSlackToken() && getSlackToken().length) {
     Slack.setAccessToken(getSlackToken());
     rtmStart();
@@ -98,6 +103,7 @@ Pebble.addEventListener('appmessage', function (event) {
   switch (op) {
     case 'MESSAGES':
       var channel = State.getChannel(data);
+      analytics.trackEvent('channel', 'opened');
       State.setActiveChannel(channel.id);
       fetchMessages(data, function (err) {
         if (err) {
@@ -113,6 +119,7 @@ Pebble.addEventListener('appmessage', function (event) {
       });
       break;
     case 'MESSAGE':
+      analytics.trackEvent('message', 'sent');
       postMessage(dataArray[0], dataArray[1], function (err) {
         if (err) {
           MessageQueue.sendAppMessage({ op: 'ERROR', data: err.toString() });
@@ -376,4 +383,9 @@ function getSlackToken() {
 function lengthInUtf8Bytes(str) {
   var m = encodeURIComponent(str).match(/%[89ABab]/g);
   return str.length + (m ? m.length : 0);
+}
+
+function setupAnalytics() {
+  analytics = new Analytics(AppInfo.settings.googleAnalyticsId,
+    AppInfo.shortName, AppInfo.versionLabel);
 }

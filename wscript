@@ -66,6 +66,7 @@ def build(ctx):
         '../src/js/libs/superagent.js',
         '../src/js/libs/message-queue.js',
         '../src/js/libs/gcolor.js',
+        '../src/js/libs/pebble-ga.js',
         '../src/js/libs/store.js',
         '../src/js/libs/sprintf.js',
         '../src/js/libs/lodash.js',

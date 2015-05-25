@@ -27,6 +27,7 @@
   "settings": {
     "delimiter": 127,
     "configPage": "https://slab-for-pebble.herokuapp.com/config/",
-    "errorUrl": "https://slab-for-pebble.herokuapp.com/error/"
+    "errorUrl": "https://slab-for-pebble.herokuapp.com/error/",
+    "googleAnalyticsId": "UA-48246810-5"
   }
 }
