@@ -165,7 +165,13 @@ function rtmStart() {
 }
 
 function rtmConnect(url) {
-  var rtmSocket = new window.ReconnectingWebSocket(url);
+  var rtmSocket;
+  if (typeof document !== 'undefined') {
+    rtmSocket = new window.ReconnectingWebSocket(url);
+  }
+  else {
+    rtmSocket = new WebSocket(url);
+  }
   rtmSocket.onmessage = function (event) {
     var data = JSON.parse(event.data);
     switch (data.type) {
