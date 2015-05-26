@@ -20,13 +20,13 @@ static TitleLayer * title_layer;
 
 
 
-chan_group channels[3];
+char * sectionTitles[]={"Starred","Channels", "Groups", "DM" };
+chan_group channels[NUM_SECTIONS];
 
-char * sectionTitles[]={"Channels", "Groups", "DM" };
 char * channelWindowTitle;
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
-	return 3;
+	return NUM_SECTIONS;
 }
 
 // Each section has a number of items;  we use a callback to specify this

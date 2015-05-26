@@ -8,9 +8,11 @@
 #ifndef CHANNELWINDOW_H_
 #define CHANNELWINDOW_H_
 
-#define CHANNELS 0
-#define DM 2
-#define GROUPS 1
+#define STARRED 0
+#define CHANNELS 1
+#define GROUPS 2
+#define DM 3
+#define NUM_SECTIONS 4
 
 void	addChannels(char *v, int i);
 void	channelwindow_create();
