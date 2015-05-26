@@ -320,7 +320,7 @@ function postMessage(id, message, callback) {
 }
 
 function ack(event) {
-  console.log('ACK! ' + event.data.transactionId);
+  console.log('ACK! ' + (event && event.data) ? event.data.transactionId : '');
 }
 
 function nack(context) {
