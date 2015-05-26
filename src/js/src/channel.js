@@ -130,3 +130,9 @@ Channel.prototype.getDisplayName = function () {
   }
   return this.data.name;
 };
+
+Channel.prototype.isStarred = function () {
+  // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+  return !!this.data.is_starred;
+  // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+};

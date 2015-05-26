@@ -48,6 +48,7 @@ var State = (function () {
     addChannel: addChannel,
     getChannel: getChannel,
     getChannels: getChannels,
+    getStarredChannels: getStarredChannels,
     getActiveChannel: getActiveChannel,
     setActiveChannel: setActiveChannel,
     serializeChannels: serializeChannels
@@ -67,12 +68,22 @@ var State = (function () {
     return _.findWhere(channels, { id: id });
   }
 
-  function getChannels(type, activeOnly) {
+  function getChannels(type, activeOnly, includeStarred) {
     return _.filter(channels, function (channel) {
+      var include = channel.getType() === type;
       if (activeOnly) {
-        return channel.getType() === type && channel.isActive();
+        include = include && channel.isActive();
       }
-      return channel.getType() === type;
+      if (!includeStarred) {
+        include = include && !channel.isStarred();
+      }
+      return include;
+    });
+  }
+
+  function getStarredChannels() {
+    return _.filter(channels, function (channel) {
+      return channel.isStarred();
     });
   }
 

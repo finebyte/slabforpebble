@@ -213,16 +213,20 @@ function rtmMessage(data) {
 
 function sendInitialState() {
   MessageQueue.sendAppMessage({
+    op: 'STARRED',
+    data: State.serializeChannels(State.getStarredChannels())
+  }, ack, nack('sendInitialState:STARRED'));
+  MessageQueue.sendAppMessage({
     op: 'CHANNELS',
-    data: State.serializeChannels(State.getChannels('channel', true))
+    data: State.serializeChannels(State.getChannels('channel', true, false))
   }, ack, nack('sendInitialState:CHANNELS'));
   MessageQueue.sendAppMessage({
     op: 'GROUPS',
-    data: State.serializeChannels(State.getChannels('group', true))
+    data: State.serializeChannels(State.getChannels('group', true, false))
   }, ack, nack('sendInitialState:GROUPS'));
   MessageQueue.sendAppMessage({
     op: 'IMS',
-    data: State.serializeChannels(State.getChannels('im', true))
+    data: State.serializeChannels(State.getChannels('im', true, false))
   }, ack, nack('sendInitialState:IMS'));
   sendReplies();
 }
