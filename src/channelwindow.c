@@ -139,21 +139,23 @@ void addChannels(char * v, int id) {
 			APP_LOG(APP_LOG_LEVEL_DEBUG,"numchans %d", channels[id].num);
 			channels[id].chans = malloc (sizeof(chan_info) * channels[id].num);
 		}
-		uint8_t i = 0;
-		tok=strtok(NULL,SEP);
-		APP_LOG(APP_LOG_LEVEL_DEBUG,"next chan id %s", tok);
-		// assuming correct formed triples...
-		while (tok!=NULL) {
+		if (channels[id].num > 0) {
+			uint8_t i = 0;
+			tok=strtok(NULL,SEP);
 			APP_LOG(APP_LOG_LEVEL_DEBUG,"next chan id %s", tok);
-			channels[id].chans[i].id = strdup(tok);
-			tok=strtok(NULL,SEP);
-			channels[id].chans[i].name = strdup(tok);
-			tok=strtok(NULL,SEP);
-			channels[id].chans[i].unread = atoi(tok);
-			channels[id].chans[i].unread_msg = malloc(20);
-			snprintf(channels[id].chans[i].unread_msg,20,"%d unread", channels[id].chans[i].unread);
-			tok=strtok(NULL,SEP);
-			i++;
+			// assuming correct formed triples...
+			while (tok!=NULL) {
+				APP_LOG(APP_LOG_LEVEL_DEBUG,"next chan id %s", tok);
+				channels[id].chans[i].id = strdup(tok);
+				tok=strtok(NULL,SEP);
+				channels[id].chans[i].name = strdup(tok);
+				tok=strtok(NULL,SEP);
+				channels[id].chans[i].unread = atoi(tok);
+				channels[id].chans[i].unread_msg = malloc(20);
+				snprintf(channels[id].chans[i].unread_msg,20,"%d unread", channels[id].chans[i].unread);
+				tok=strtok(NULL,SEP);
+				i++;
+			}
 		}
 	}
 	free(m);
@@ -165,6 +167,3 @@ void addChannels(char * v, int id) {
 	channelWindowTitle = time_text;
 
 }
-
-
-
