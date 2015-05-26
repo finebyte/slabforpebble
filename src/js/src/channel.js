@@ -126,7 +126,7 @@ Channel.prototype.getDisplayName = function () {
     if (!user) {
       return this.data.user;
     }
-    return Users.findById(this.data.user).name;
+    return user.name;
   }
   return this.data.name;
 };

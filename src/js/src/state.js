@@ -69,7 +69,7 @@ var State = (function () {
   }
 
   function getChannels(type, activeOnly, includeStarred) {
-    return _.filter(channels, function (channel) {
+    return _.sortBy(_.filter(channels, function (channel) {
       var include = channel.getType() === type;
       if (activeOnly) {
         include = include && channel.isActive();
@@ -78,13 +78,13 @@ var State = (function () {
         include = include && !channel.isStarred();
       }
       return include;
-    });
+    }), sortChannel);
   }
 
   function getStarredChannels() {
-    return _.filter(channels, function (channel) {
+    return _.sortBy(_.filter(channels, function (channel) {
       return channel.isStarred();
-    });
+    }), sortChannel);
   }
 
   function setActiveChannel(id) {
@@ -99,6 +99,10 @@ var State = (function () {
     var serializedChannels = _.invoke(channels, 'serialize');
     serializedChannels.unshift(channels.length);
     return serializedChannels.join(DELIM);
+  }
+
+  function sortChannel(channel) {
+    return channel.getDisplayName();
   }
 
 }());
