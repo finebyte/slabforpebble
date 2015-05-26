@@ -15,7 +15,7 @@ var Errors = (function () {
         err: err ? err.message || err.toString() : 'Unknown error',
         context: context,
         time: new Date(),
-        version: AppInfo.version
+        version: AppInfo.versionLabel
       };
       var watch = Pebble.getActiveWatchInfo();
       body.hardwarePlatform = watch ? watch.platform : 'aplite';
