@@ -47,7 +47,7 @@ function Channel(data) {
 }
 
 Channel.prototype.update = function (data) {
-  this.data = data;
+  _.merge(this.data, data);
 };
 
 Channel.prototype.serialize = function () {

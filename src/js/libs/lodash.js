@@ -1,7 +1,7 @@
 /**
  * @license
  * lodash 3.8.0 (Custom Build) <https://lodash.com/>
- * Build: `lodash modern include="filter,invoke,map,findWhere,sortBy,take" -o src/js/libs/lodash.js`
+ * Build: `lodash modern include="filter,invoke,map,findWhere,sortBy,take,merge" -o src/js/libs/lodash.js`
  * Copyright 2012-2015 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
  * Copyright 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -214,7 +214,8 @@
   }
 
   /** Used for native method references. */
-  var objectProto = Object.prototype;
+  var arrayProto = Array.prototype,
+      objectProto = Object.prototype;
 
   /** Used to resolve the decompiled source of functions. */
   var fnToString = Function.prototype.toString;
@@ -239,6 +240,8 @@
       bufferSlice = isNative(bufferSlice = ArrayBuffer && new ArrayBuffer(0).slice) && bufferSlice,
       floor = Math.floor,
       getOwnPropertySymbols = isNative(getOwnPropertySymbols = Object.getOwnPropertySymbols) && getOwnPropertySymbols,
+      getPrototypeOf = isNative(getPrototypeOf = Object.getPrototypeOf) && getPrototypeOf,
+      push = arrayProto.push,
       preventExtensions = isNative(preventExtensions = Object.preventExtensions) && preventExtensions,
       propertyIsEnumerable = objectProto.propertyIsEnumerable,
       Uint8Array = isNative(Uint8Array = root.Uint8Array) && Uint8Array;
@@ -729,6 +732,19 @@
   var baseFor = createBaseFor();
 
   /**
+   * The base implementation of `_.forIn` without support for callback
+   * shorthands and `this` binding.
+   *
+   * @private
+   * @param {Object} object The object to iterate over.
+   * @param {Function} iteratee The function invoked per iteration.
+   * @returns {Object} Returns `object`.
+   */
+  function baseForIn(object, iteratee) {
+    return baseFor(object, iteratee, keysIn);
+  }
+
+  /**
    * The base implementation of `_.forOwn` without support for callback
    * shorthands and `this` binding.
    *
@@ -1016,6 +1032,112 @@
   }
 
   /**
+   * The base implementation of `_.merge` without support for argument juggling,
+   * multiple sources, and `this` binding `customizer` functions.
+   *
+   * @private
+   * @param {Object} object The destination object.
+   * @param {Object} source The source object.
+   * @param {Function} [customizer] The function to customize merging properties.
+   * @param {Array} [stackA=[]] Tracks traversed source objects.
+   * @param {Array} [stackB=[]] Associates values with source counterparts.
+   * @returns {Object} Returns `object`.
+   */
+  function baseMerge(object, source, customizer, stackA, stackB) {
+    if (!isObject(object)) {
+      return object;
+    }
+    var isSrcArr = isArrayLike(source) && (isArray(source) || isTypedArray(source));
+    if (!isSrcArr) {
+      var props = keys(source);
+      push.apply(props, getSymbols(source));
+    }
+    arrayEach(props || source, function(srcValue, key) {
+      if (props) {
+        key = srcValue;
+        srcValue = source[key];
+      }
+      if (isObjectLike(srcValue)) {
+        stackA || (stackA = []);
+        stackB || (stackB = []);
+        baseMergeDeep(object, source, key, baseMerge, customizer, stackA, stackB);
+      }
+      else {
+        var value = object[key],
+            result = customizer ? customizer(value, srcValue, key, object, source) : undefined,
+            isCommon = result === undefined;
+
+        if (isCommon) {
+          result = srcValue;
+        }
+        if ((isSrcArr || result !== undefined) &&
+            (isCommon || (result === result ? (result !== value) : (value === value)))) {
+          object[key] = result;
+        }
+      }
+    });
+    return object;
+  }
+
+  /**
+   * A specialized version of `baseMerge` for arrays and objects which performs
+   * deep merges and tracks traversed objects enabling objects with circular
+   * references to be merged.
+   *
+   * @private
+   * @param {Object} object The destination object.
+   * @param {Object} source The source object.
+   * @param {string} key The key of the value to merge.
+   * @param {Function} mergeFunc The function to merge values.
+   * @param {Function} [customizer] The function to customize merging properties.
+   * @param {Array} [stackA=[]] Tracks traversed source objects.
+   * @param {Array} [stackB=[]] Associates values with source counterparts.
+   * @returns {boolean} Returns `true` if the objects are equivalent, else `false`.
+   */
+  function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stackB) {
+    var length = stackA.length,
+        srcValue = source[key];
+
+    while (length--) {
+      if (stackA[length] == srcValue) {
+        object[key] = stackB[length];
+        return;
+      }
+    }
+    var value = object[key],
+        result = customizer ? customizer(value, srcValue, key, object, source) : undefined,
+        isCommon = result === undefined;
+
+    if (isCommon) {
+      result = srcValue;
+      if (isArrayLike(srcValue) && (isArray(srcValue) || isTypedArray(srcValue))) {
+        result = isArray(value)
+          ? value
+          : (isArrayLike(value) ? arrayCopy(value) : []);
+      }
+      else if (isPlainObject(srcValue) || isArguments(srcValue)) {
+        result = isArguments(value)
+          ? toPlainObject(value)
+          : (isPlainObject(value) ? value : {});
+      }
+      else {
+        isCommon = false;
+      }
+    }
+    // Add the source value to the stack of traversed objects and associate
+    // it with its merged value.
+    stackA.push(srcValue);
+    stackB.push(result);
+
+    if (isCommon) {
+      // Recursively merge objects and arrays (susceptible to call stack limits).
+      object[key] = mergeFunc(result, srcValue, customizer, stackA, stackB);
+    } else if (result === result ? (result !== value) : (value === value)) {
+      object[key] = result;
+    }
+  }
+
+  /**
    * The base implementation of `_.property` without support for deep paths.
    *
    * @private
@@ -1158,6 +1280,45 @@
       }
       return result;
     };
+  }
+
+  /**
+   * Creates a function that assigns properties of source object(s) to a given
+   * destination object.
+   *
+   * **Note:** This function is used to create `_.assign`, `_.defaults`, and `_.merge`.
+   *
+   * @private
+   * @param {Function} assigner The function to assign values.
+   * @returns {Function} Returns the new assigner function.
+   */
+  function createAssigner(assigner) {
+    return restParam(function(object, sources) {
+      var index = -1,
+          length = object == null ? 0 : sources.length,
+          customizer = length > 2 && sources[length - 2],
+          guard = length > 2 && sources[2],
+          thisArg = length > 1 && sources[length - 1];
+
+      if (typeof customizer == 'function') {
+        customizer = bindCallback(customizer, thisArg, 5);
+        length -= 2;
+      } else {
+        customizer = typeof thisArg == 'function' ? thisArg : null;
+        length -= (customizer ? 1 : 0);
+      }
+      if (guard && isIterateeCall(sources[0], sources[1], guard)) {
+        customizer = length < 3 ? null : customizer;
+        length = 1;
+      }
+      while (++index < length) {
+        var source = sources[index];
+        if (source) {
+          assigner(object, source, customizer);
+        }
+      }
+      return object;
+    });
   }
 
   /**
@@ -1607,6 +1768,38 @@
    */
   function isStrictComparable(value) {
     return value === value && !isObject(value);
+  }
+
+  /**
+   * A fallback implementation of `_.isPlainObject` which checks if `value`
+   * is an object created by the `Object` constructor or has a `[[Prototype]]`
+   * of `null`.
+   *
+   * @private
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
+   */
+  function shimIsPlainObject(value) {
+    var Ctor,
+        support = lodash.support;
+
+    // Exit early for non `Object` objects.
+    if (!(isObjectLike(value) && objToString.call(value) == objectTag) ||
+        (!hasOwnProperty.call(value, 'constructor') &&
+          (Ctor = value.constructor, typeof Ctor == 'function' && !(Ctor instanceof Ctor)))) {
+      return false;
+    }
+    // IE < 9 iterates inherited properties before own properties. If the first
+    // iterated property is an object's own property then there are no inherited
+    // enumerable properties.
+    var result;
+    // In most environments an object's own properties are iterated before
+    // its inherited properties. If the last iterated property is an object's
+    // own property then there are no inherited enumerable properties.
+    baseForIn(value, function(subValue, key) {
+      result = key;
+    });
+    return result === undefined || hasOwnProperty.call(value, result);
   }
 
   /**
@@ -2166,6 +2359,48 @@
   }
 
   /**
+   * Checks if `value` is a plain object, that is, an object created by the
+   * `Object` constructor or one with a `[[Prototype]]` of `null`.
+   *
+   * **Note:** This method assumes objects created by the `Object` constructor
+   * have no inherited enumerable properties.
+   *
+   * @static
+   * @memberOf _
+   * @category Lang
+   * @param {*} value The value to check.
+   * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
+   * @example
+   *
+   * function Foo() {
+   *   this.a = 1;
+   * }
+   *
+   * _.isPlainObject(new Foo);
+   * // => false
+   *
+   * _.isPlainObject([1, 2, 3]);
+   * // => false
+   *
+   * _.isPlainObject({ 'x': 0, 'y': 0 });
+   * // => true
+   *
+   * _.isPlainObject(Object.create(null));
+   * // => true
+   */
+  var isPlainObject = !getPrototypeOf ? shimIsPlainObject : function(value) {
+    if (!(value && objToString.call(value) == objectTag)) {
+      return false;
+    }
+    var valueOf = value.valueOf,
+        objProto = isNative(valueOf) && (objProto = getPrototypeOf(valueOf)) && getPrototypeOf(objProto);
+
+    return objProto
+      ? (value == objProto || getPrototypeOf(value) == objProto)
+      : shimIsPlainObject(value);
+  };
+
+  /**
    * Checks if `value` is classified as a typed array.
    *
    * @static
@@ -2183,6 +2418,33 @@
    */
   function isTypedArray(value) {
     return isObjectLike(value) && isLength(value.length) && !!typedArrayTags[objToString.call(value)];
+  }
+
+  /**
+   * Converts `value` to a plain object flattening inherited enumerable
+   * properties of `value` to own properties of the plain object.
+   *
+   * @static
+   * @memberOf _
+   * @category Lang
+   * @param {*} value The value to convert.
+   * @returns {Object} Returns the converted plain object.
+   * @example
+   *
+   * function Foo() {
+   *   this.b = 2;
+   * }
+   *
+   * Foo.prototype.c = 3;
+   *
+   * _.assign({ 'a': 1 }, new Foo);
+   * // => { 'a': 1, 'b': 2 }
+   *
+   * _.assign({ 'a': 1 }, _.toPlainObject(new Foo));
+   * // => { 'a': 1, 'b': 2, 'c': 3 }
+   */
+  function toPlainObject(value) {
+    return baseCopy(value, keysIn(value));
   }
 
   /**
@@ -2271,6 +2533,56 @@
     }
     return result;
   }
+
+  /**
+   * Recursively merges own enumerable properties of the source object(s), that
+   * don't resolve to `undefined` into the destination object. Subsequent sources
+   * overwrite property assignments of previous sources. If `customizer` is
+   * provided it is invoked to produce the merged values of the destination and
+   * source properties. If `customizer` returns `undefined` merging is handled
+   * by the method instead. The `customizer` is bound to `thisArg` and invoked
+   * with five arguments: (objectValue, sourceValue, key, object, source).
+   *
+   * @static
+   * @memberOf _
+   * @category Object
+   * @param {Object} object The destination object.
+   * @param {...Object} [sources] The source objects.
+   * @param {Function} [customizer] The function to customize assigned values.
+   * @param {*} [thisArg] The `this` binding of `customizer`.
+   * @returns {Object} Returns `object`.
+   * @example
+   *
+   * var users = {
+   *   'data': [{ 'user': 'barney' }, { 'user': 'fred' }]
+   * };
+   *
+   * var ages = {
+   *   'data': [{ 'age': 36 }, { 'age': 40 }]
+   * };
+   *
+   * _.merge(users, ages);
+   * // => { 'data': [{ 'user': 'barney', 'age': 36 }, { 'user': 'fred', 'age': 40 }] }
+   *
+   * // using a customizer callback
+   * var object = {
+   *   'fruits': ['apple'],
+   *   'vegetables': ['beet']
+   * };
+   *
+   * var other = {
+   *   'fruits': ['banana'],
+   *   'vegetables': ['carrot']
+   * };
+   *
+   * _.merge(object, other, function(a, b) {
+   *   if (_.isArray(a)) {
+   *     return a.concat(b);
+   *   }
+   * });
+   * // => { 'fruits': ['apple', 'banana'], 'vegetables': ['beet', 'carrot'] }
+   */
+  var merge = createAssigner(baseMerge);
 
   /**
    * Escapes the `RegExp` special characters "\", "/", "^", "$", ".", "|", "?",
@@ -2445,10 +2757,12 @@
   lodash.keysIn = keysIn;
   lodash.map = map;
   lodash.matches = matches;
+  lodash.merge = merge;
   lodash.property = property;
   lodash.restParam = restParam;
   lodash.sortBy = sortBy;
   lodash.take = take;
+  lodash.toPlainObject = toPlainObject;
 
   // Add aliases.
   lodash.collect = map;
@@ -2464,6 +2778,7 @@
   lodash.isArray = isArray;
   lodash.isNative = isNative;
   lodash.isObject = isObject;
+  lodash.isPlainObject = isPlainObject;
   lodash.isTypedArray = isTypedArray;
   lodash.last = last;
 

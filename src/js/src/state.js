@@ -49,6 +49,7 @@ var State = (function () {
     getChannel: getChannel,
     getChannels: getChannels,
     getStarredChannels: getStarredChannels,
+    updateChannels: updateChannels,
     getActiveChannel: getActiveChannel,
     setActiveChannel: setActiveChannel,
     serializeChannels: serializeChannels
@@ -56,10 +57,7 @@ var State = (function () {
 
   function addChannel(data) {
     var channel = getChannel(data.id);
-    if (channel) {
-      channel.update(data);
-    }
-    else {
+    if (!channel) {
       channels.push(new Channel(data));
     }
   }
@@ -85,6 +83,16 @@ var State = (function () {
     return _.sortBy(_.filter(channels, function (channel) {
       return channel.isStarred();
     }), sortChannel);
+  }
+
+  function updateChannels(channels) {
+    channels.forEach(function (data) {
+      var channel = getChannel(data.id);
+      if (!channel) {
+        return addChannel(data);
+      }
+      channel.update(data);
+    });
   }
 
   function setActiveChannel(id) {

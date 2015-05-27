@@ -135,6 +135,9 @@ Pebble.addEventListener('appmessage', function (event) {
     case 'ERROR':
       Errors.send(new Error(data), 'watch:ERROR');
       break;
+    case 'REFRESH':
+      refreshEverything();
+      break;
     default:
     // Pass!
   }
@@ -158,6 +161,7 @@ function rtmStart() {
     });
     Users.load(data.users);
     sendInitialState();
+    sendReplies();
     if (window.WebSocket) {
       rtmConnect(data.url);
     }
@@ -234,7 +238,6 @@ function sendInitialState() {
     op: 'IMS',
     data: State.serializeChannels(State.getChannels('im', true, false))
   }, ack, nack('sendInitialState:IMS'));
-  sendReplies();
 }
 
 function fetchMessages(id, callback) {
@@ -399,4 +402,42 @@ function lengthInUtf8Bytes(str) {
 function setupAnalytics() {
   analytics = new Analytics(AppInfo.settings.googleAnalyticsId,
     AppInfo.shortName, AppInfo.versionLabel);
+}
+
+function refreshEverything() {
+  async.parallel([
+    function (callback) {
+      Slack.get('channels.list', {}, function (err, data) {
+        if (err) {
+          return callback(err);
+        }
+        State.updateChannels(data.channels);
+      });
+      return callback();
+    },
+    function (callback) {
+      Slack.get('groups.list', {}, function (err, data) {
+        if (err) {
+          return callback(err);
+        }
+        State.updateChannels(data.groups);
+      });
+      return callback();
+    },
+    function (callback) {
+      Slack.get('im.list', {}, function (err, data) {
+        if (err) {
+          return callback(err);
+        }
+        State.updateChannels(data.ims);
+      });
+      return callback();
+    }
+  ],
+  function (err) {
+    if (err) {
+      return console.log(err);
+    }
+    sendInitialState();
+  });
 }
