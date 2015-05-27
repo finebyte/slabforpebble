@@ -4,7 +4,7 @@
   "longName": "Slab",
   "companyName": "finebyte",
   "versionCode": 1,
-  "versionLabel": "0.4",
+  "versionLabel": "0.5",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],
   "watchapp": {
