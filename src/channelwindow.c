@@ -17,7 +17,7 @@ static Window *window=NULL;
 static MenuLayer *menu_layer;
 static TextLayer  * watchInfo;
 static TitleLayer * title_layer;
-static AppTimer * refresh_chan_timer;
+static AppTimer * refresh_chan_timer=NULL;
 
 
 
@@ -192,6 +192,7 @@ void addChannels(char * v, int id) {
 	strftime(time_text, sizeof(time_text), "Updated at %H:%M", curret_time);
 	channelWindowTitle = time_text;
 
+	if (refresh_chan_timer!=NULL) app_timer_cancel(refresh_chan_timer);
 	refresh_chan_timer = app_timer_register(CHAN_REFESH_INTERVAL, refresh_chans,NULL);
 
 
