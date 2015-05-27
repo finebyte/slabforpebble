@@ -54,6 +54,7 @@ var maxBufferSize = 1000;
 var sendMessageTimer = null;
 var quickRefreshChannel = null;
 var analytics = null;
+var rtmSocket = null;
 
 Pebble.addEventListener('ready', function () {
   console.log('Ready!');
@@ -136,7 +137,7 @@ Pebble.addEventListener('appmessage', function (event) {
       Errors.send(new Error(data), 'watch:ERROR');
       break;
     case 'REFRESH':
-      refreshEverything();
+      rtmStart();
       break;
     default:
     // Pass!
@@ -169,7 +170,10 @@ function rtmStart() {
 }
 
 function rtmConnect(url) {
-  var rtmSocket;
+  if (rtmSocket) {
+    rtmSocket.close();
+    rtmSocket = null;
+  }
   if (typeof document !== 'undefined') {
     rtmSocket = new window.ReconnectingWebSocket(url);
   }
@@ -402,42 +406,4 @@ function lengthInUtf8Bytes(str) {
 function setupAnalytics() {
   analytics = new Analytics(AppInfo.settings.googleAnalyticsId,
     AppInfo.shortName, AppInfo.versionLabel);
-}
-
-function refreshEverything() {
-  async.parallel([
-    function (callback) {
-      Slack.get('channels.list', {}, function (err, data) {
-        if (err) {
-          return callback(err);
-        }
-        State.updateChannels(data.channels);
-      });
-      return callback();
-    },
-    function (callback) {
-      Slack.get('groups.list', {}, function (err, data) {
-        if (err) {
-          return callback(err);
-        }
-        State.updateChannels(data.groups);
-      });
-      return callback();
-    },
-    function (callback) {
-      Slack.get('im.list', {}, function (err, data) {
-        if (err) {
-          return callback(err);
-        }
-        State.updateChannels(data.ims);
-      });
-      return callback();
-    }
-  ],
-  function (err) {
-    if (err) {
-      return console.log(err);
-    }
-    sendInitialState();
-  });
 }
