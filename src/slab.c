@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <font-loader.h>
 #include "channelwindow.h"
 #include "chatwindow.h"
 #include "util.h"
@@ -191,6 +192,7 @@ static void init(void) {
 	#endif
 	const bool animated = true;
 
+	fonts_init();
 
 	app_message_open(app_message_inbox_size_maximum(),app_message_outbox_size_maximum());
 	app_message_register_inbox_received(rcv);

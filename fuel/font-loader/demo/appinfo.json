@@ -1,0 +1,32 @@
+{
+  "uuid": "ad92cf11-e448-4db7-9735-acf529d7979f",
+  "shortName": "Font Demo",
+  "longName": "Font Loader Demo",
+  "companyName": "Matthew Tole",
+  "versionCode": 1,
+  "versionLabel": "2.0.1",
+  "watchapp": { "watchface": false },
+  "appKeys": { },
+  "resources": {
+    "media": [
+      {
+        "type": "font",
+        "name": "FONT_DEMO_ALPHA_24",
+        "file": "demo_alpha.ttf",
+        "characterRegex": "[A-Z]"
+      },
+      {
+        "type": "font",
+        "name": "FONT_DEMO_BETA_24",
+        "file": "demo_beta.ttf",
+        "characterRegex": "[A-Z]"
+      },
+      {
+        "type": "font",
+        "name": "FONT_DEMO_GAMMA_24",
+        "file": "demo_gamma.ttf",
+        "characterRegex": "[A-Z]"
+      }
+    ]
+  }
+}

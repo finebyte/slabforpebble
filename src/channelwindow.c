@@ -10,7 +10,11 @@
 #include "channelwindow.h"
 #include "chatwindow.h"
 #include "title_layer.h"
+#include <font-loader.h>
+#include <pebble-assist.h>
 
+
+static char* channel_icon_str(chan_info* channel);
 
 
 static Window *window=NULL;
@@ -21,7 +25,7 @@ static AppTimer * refresh_chan_timer=NULL;
 
 
 
-char * sectionTitles[]={"Starred","Channels", "Groups", "DM" };
+char * sectionTitles[]={"STARRED","CHANNELS", "GROUPS", "DM" };
 chan_group channels[NUM_SECTIONS];
 
 char * channelWindowTitle;
@@ -38,8 +42,19 @@ static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t secti
 
 // This is the menu item draw callback where you specify what each item should look like
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
-	// Determine which section we're going to draw in
-	menu_cell_basic_draw(ctx, cell_layer, channels[cell_index->section].chans[cell_index->row].name, channels[cell_index->section].chans[cell_index->row].unread_msg, NULL);
+	chan_info* channel = &channels[cell_index->section].chans[cell_index->row];
+	graphics_draw_text(ctx, channel_icon_str(channel),
+		fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 32, 16),
+		GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+	graphics_draw_text(ctx, channel->name,
+		fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+		GRect(22, -6, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+		GTextAlignmentLeft, NULL);
+	graphics_draw_text(ctx, channel->unread_msg,
+		fonts_get_system_font(channel->unread == 0 ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_14_BOLD),
+		GRect(4, 20, PEBBLE_WIDTH - 8, 14),
+		GTextOverflowModeTrailingEllipsis,
+		GTextAlignmentLeft, NULL);
 }
 
 // Here we capture when a user selects a menu item
@@ -49,11 +64,20 @@ void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
 }
 
 int16_t menu_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
-	return MENU_CELL_BASIC_HEADER_HEIGHT;
+	return MENU_CELL_BASIC_HEADER_HEIGHT + 5;
+}
+
+int16_t menu_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
+	return 40;
 }
 
 void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
-	menu_cell_basic_header_draw(ctx,cell_layer,sectionTitles[section_index]);
+	graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorVividCerulean, GColorWhite));
+	graphics_fill_rect(ctx, layer_get_bounds(cell_layer), 0, GCornerNone);
+	graphics_draw_text(ctx, sectionTitles[section_index],
+		fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+		GRect(0, -2, PEBBLE_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+		GTextAlignmentCenter, NULL);
 }
 
 // This initializes the menu upon window load
@@ -61,18 +85,19 @@ void window_load(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
-	title_layer = title_layer_create(GRect(0,0,144,24), channelWindowTitle);
-
-	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
+	// title_layer = title_layer_create(GRect(0,0,144,24), channelWindowTitle);
+	// 
+	// layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 
 
 	// Create the menu layer
-	menu_layer = menu_layer_create(GRect(0,24,144,168));
+	menu_layer = menu_layer_create(GRect(0,0,144,168));
 
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
 		.get_num_sections = menu_get_num_sections_callback,
 				.get_header_height = menu_get_header_height_callback,
+				.get_cell_height = menu_get_cell_height_callback,
 				.get_num_rows = menu_get_num_rows_callback,
 				.draw_row = menu_draw_row_callback,
 				.draw_header = menu_draw_header_callback,
@@ -196,4 +221,17 @@ void addChannels(char * v, int id) {
 	refresh_chan_timer = app_timer_register(CHAN_REFESH_INTERVAL, refresh_chans,NULL);
 
 
+}
+
+static char* channel_icon_str(chan_info* channel) {
+	if (channel->id[0] == 'D') {
+		return "A";
+	}
+	if (channel->id[0] == 'G') {
+		return "C";
+	}
+	if (channel->id[0] == 'C') {
+		return "B";
+	}
+	return "B";
 }

@@ -1,0 +1,13 @@
+{
+  "name": "font-loader",
+  "version": "2.1",
+  "includes": [ "src/" ],
+  "sources": [ "src/font-loader.c" ],
+  "js": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smallstoneapps/font-loader.git"
+  },
+  "author": "Matthew Tole <pebble@matthewtole.com>",
+  "license": "MIT"
+}

@@ -44,7 +44,6 @@ var store = require('store');
 var Users = require('./users');
 var State = require('./state');
 var Utils = require('./utils');
-
 require('./hacks');
 
 var maxBufferSize = 1000;
@@ -367,18 +366,19 @@ function sendReplies() {
 
 function buildConfigUrl() {
   var watch = Pebble.getActiveWatchInfo();
+  console.log(JSON.stringify(watch));
   var query = [];
-  query.push(['version', AppInfo.versionLabel]);
-  query.push(['hardware_platform', watch ? watch.platform : 'aplite']);
-  if (watch) {
-    query.push(['model', watch.model]);
-    query.push(['language', watch.language]);
-    query.push(['firmware', Utils.serializeFirmware(watch.firmware)]);
-  }
-  query.push(['account_token', Pebble.getAccountToken()]);
-  if (getSlackToken() && getSlackToken().length) {
-    query.push(['slack_access_token', getSlackToken()]);
-  }
+  // query.push(['version', AppInfo.versionLabel]);
+  // query.push(['hardware_platform', watch ? watch.platform : 'aplite']);
+  // if (watch) {
+  //   query.push(['model', watch.model]);
+  //   query.push(['language', watch.language]);
+  //   query.push(['firmware', Utils.serializeFirmware(watch.firmware)]);
+  // }
+  // query.push(['account_token', Pebble.getAccountToken()]);
+  // if (getSlackToken() && getSlackToken().length) {
+  //   query.push(['slack_access_token', getSlackToken()]);
+  // }
   var queryString = query.map(function (q) { return q.join('='); }).join('&');
   return AppInfo.settings.configPage + '?' + queryString;
 }

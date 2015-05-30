@@ -21,6 +21,12 @@
         "type": "png",
         "file": "images/splash.png",
         "name": "SPLASH"
+      },
+      {
+        "type": "font",
+        "file": "fonts/icons.ttf",
+        "name": "FONT_ICONS_16",
+        "characterRegex": "[A-D]"
       }
     ]
   },

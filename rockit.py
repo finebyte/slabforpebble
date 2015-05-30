@@ -68,7 +68,7 @@ def includes(ctx):
     include_folders = []
     libs = ctx.path.find_node('./fuel')
     for folder in libs.listdir():
-        if not os.path.isdir(folder):
+        if not os.path.isdir(os.path.join('fuel', folder)):
             continue
         data = __get_data(folder)
         if 'includes' not in data:
@@ -88,7 +88,7 @@ def sources(ctx):
     source_files = []
     libs = ctx.path.find_node('./fuel')
     for folder in libs.listdir():
-        if not os.path.isdir(folder):
+        if not os.path.isdir(os.path.join('fuel', folder)):
             continue
         data = __get_data(folder)
         for file in data['sources']:
