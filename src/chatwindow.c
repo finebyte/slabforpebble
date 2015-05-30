@@ -155,7 +155,7 @@ void chat_load(Window *window) {
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 
 #ifdef PBL_COLOR
-	menu_layer_set_highlight_colors(menu_layer, GColorBlue, GColorWhite);
+	menu_layer_set_highlight_colors(menu_layer, COLOR_PRIMARY, GColorWhite);
 #endif
 
 	// Add it to the window for display

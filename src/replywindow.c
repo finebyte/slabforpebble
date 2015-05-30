@@ -113,7 +113,7 @@ void replywindow_appear(Window *window) {
 	});
 
 #ifdef PBL_COLOR
-	menu_layer_set_highlight_colors(rw->menu_layer,GColorBlue,GColorWhite);
+	menu_layer_set_highlight_colors(rw->menu_layer,COLOR_PRIMARY,GColorWhite);
 #endif
 
 
@@ -201,7 +201,3 @@ ReplyList * addReplies(char * v) {
 	myReplies = rl;
 	return rl;
 }
-
-
-
-

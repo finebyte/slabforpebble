@@ -24,4 +24,7 @@ static char SEP[]={(char)0x7f, (char)0x00};
 #define ICON_PRIVATE "F"
 #define ICON_STAR "G"
 
+#define COLOR_PRIMARY COLOR_FALLBACK(GColorBlue, GColorBlack)
+#define COLOR_SECONDARY COLOR_FALLBACK(GColorOxfordBlue, GColorBlack)
+
 #endif /* UTIL_H_ */

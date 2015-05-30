@@ -43,7 +43,7 @@ void timeout(void* d) {
 }
 
 static void layer_update_proc(Layer* layer, GContext* ctx) {
-	graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorBlue, GColorBlack));
+	graphics_context_set_fill_color(ctx, COLOR_PRIMARY);
 	graphics_context_set_text_color(ctx, GColorWhite);
 	char* icon = ICON_X;
 	char* message = "";
@@ -74,7 +74,7 @@ static void layer_update_proc(Layer* layer, GContext* ctx) {
 		GRect(8, 64, PEBBLE_WIDTH-16, 100), GTextOverflowModeWordWrap,
 		GTextAlignmentCenter, NULL);
 
-	graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorOxfordBlue, GColorBlack));
+	graphics_context_set_fill_color(ctx, COLOR_SECONDARY);
 	graphics_fill_rect(ctx, GRect(0, PEBBLE_HEIGHT - 22, PEBBLE_WIDTH, 22), GCornerNone, 0);
 	char footer[16];
 	snprintf(footer, 16, "SLAB %s", VERSION_LABEL);

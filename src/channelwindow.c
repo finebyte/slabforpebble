@@ -72,7 +72,8 @@ int16_t menu_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_in
 }
 
 void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
-	graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorVividCerulean, GColorWhite));
+	graphics_context_set_fill_color(ctx, COLOR_SECONDARY);
+	graphics_context_set_text_color(ctx, GColorWhite);
 	graphics_fill_rect(ctx, layer_get_bounds(cell_layer), 0, GCornerNone);
 	graphics_draw_text(ctx, sectionTitles[section_index],
 		fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
@@ -105,7 +106,7 @@ void window_load(Window *window) {
 	});
 
 #ifdef PBL_COLOR
-	menu_layer_set_highlight_colors(menu_layer,GColorBlue,GColorWhite);
+	menu_layer_set_highlight_colors(menu_layer,COLOR_PRIMARY,GColorWhite);
 #endif
 
 	// Bind the menu layer's click config provider to the window for interactivity
