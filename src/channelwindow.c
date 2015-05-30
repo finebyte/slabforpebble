@@ -47,8 +47,8 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 	#endif
 	chan_info* channel = &channels[cell_index->section].chans[cell_index->row];
 	graphics_draw_text(ctx, channel_icon_str(channel),
-		fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 32, 16),
-		GTextOverflowModeFill, GTextAlignmentLeft, NULL);
+		fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 16, 16),
+		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 	graphics_draw_text(ctx, channel->name,
 		fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
 		GRect(22, -6, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,

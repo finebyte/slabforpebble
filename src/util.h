@@ -16,13 +16,14 @@ void sendCommand(char * op, char * data);
 
 static char SEP[]={(char)0x7f, (char)0x00};
 
-#define ICON_CHAT "A"
+#define ICON_EXCLAMATION "A"
 #define ICON_X "B"
-#define ICON_REFRESH "C"
-#define ICON_PHONE "D"
-#define ICON_CHANNEL "E"
-#define ICON_PRIVATE "F"
-#define ICON_STAR "G"
+#define ICON_CHAT "C"
+#define ICON_REFRESH "G"
+#define ICON_PHONE "E"
+#define ICON_CHANNEL "H"
+#define ICON_PRIVATE "D"
+#define ICON_STAR "F"
 
 #define COLOR_PRIMARY COLOR_FALLBACK(GColorBlue, GColorBlack)
 #define COLOR_SECONDARY COLOR_FALLBACK(GColorOxfordBlue, GColorBlack)

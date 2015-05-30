@@ -26,13 +26,13 @@
         "type": "font",
         "file": "fonts/icons.ttf",
         "name": "FONT_ICONS_16",
-        "characterRegex": "[A-G]"
+        "characterRegex": "[A-H]"
       },
       {
         "type": "font",
         "file": "fonts/icons.ttf",
         "name": "FONT_ICONS_32",
-        "characterRegex": "[A-G]"
+        "characterRegex": "[A-H]"
       }
     ]
   },
