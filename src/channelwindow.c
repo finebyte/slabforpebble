@@ -84,6 +84,10 @@ void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t 
 		GTextAlignmentCenter, NULL);
 }
 
+void menu_layer_draw_separator_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
+	
+}
+
 // This initializes the menu upon window load
 void window_load(Window *window) {
 
@@ -105,6 +109,7 @@ void window_load(Window *window) {
 				.get_num_rows = menu_get_num_rows_callback,
 				.draw_row = menu_draw_row_callback,
 				.draw_header = menu_draw_header_callback,
+				.draw_separator = menu_layer_draw_separator_callback,
 				.select_click = menu_select_callback,
 	});
 
