@@ -62,19 +62,6 @@ def distclean(ctx):
 def build(ctx):
     ctx.load('pebble_sdk')
 
-    js_libs = [
-        '../src/js/libs/superagent.js',
-        '../src/js/libs/message-queue.js',
-        '../src/js/libs/gcolor.js',
-        '../src/js/libs/pebble-ga.js',
-        '../src/js/libs/store.js',
-        '../src/js/libs/sprintf.js',
-        '../src/js/libs/lodash.js',
-        '../src/js/libs/async.js',
-        '../src/js/libs/moment.js',
-        '../src/js/libs/reconnecting-websocket.js'
-    ]
-
     js_sources = [
         '../src/js/src/generated/appinfo.js',
         '../src/js/src/hacks.js',
@@ -88,6 +75,8 @@ def build(ctx):
         '../src/js/src/state.js',
         '../src/js/src/main.js'
     ]
+    if os.path.isfile('src/js/src/debug.js'):
+        js_sources.insert(0, '../src/js/src/debug.js');
 
     built_js = '../src/js/pebble-js-app.js'
 
