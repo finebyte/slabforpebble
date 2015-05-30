@@ -1,15 +1,24 @@
 #include <pebble.h>
+#include <pebble-assist.h>
 #include <font-loader.h>
 #include "channelwindow.h"
 #include "chatwindow.h"
 #include "util.h"
 #include "replywindow.h"
+#include "generated/appinfo.h"
+
+
+typedef enum {
+	MODE_WAITING,
+	MODE_ERROR,
+	MODE_TIMEOUT,
+	MODE_LOGIN
+} Mode;
 
 static Window *window;
-static BitmapLayer *layer_bitmap;
-static GBitmap *splash;
-static TextLayer * status_tl;
+static Layer *layer;
 static AppTimer * login_timer=NULL;
+static Mode mode;
 
 void logComms(char * c, bool tx) {
 	static char time_text[] = "HH:MM:SS";
@@ -29,22 +38,66 @@ void handle_time_tick(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 void timeout(void* d) {
-	if (status_tl!=NULL) {
-		text_layer_set_text(status_tl, "Timeout connecting\nPlease launch again");
+	mode = MODE_TIMEOUT;
+	layer_mark_dirty(layer);
+}
+
+static void layer_update_proc(Layer* layer, GContext* ctx) {
+	graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorBlue, GColorBlack));
+	graphics_context_set_text_color(ctx, GColorWhite);
+	char* icon = ICON_X;
+	char* message = "";
+	switch (mode) {
+		case MODE_WAITING:
+			icon = ICON_REFRESH;
+			message = "WAITING FOR SLACK";
+			break;
+		case MODE_ERROR:
+			icon = ICON_X;
+			message = "UNKNOWN ERROR";
+			break;
+		case MODE_LOGIN:
+			icon = ICON_PHONE;
+			message = "LOGIN REQUIRED";
+			break;
+		case MODE_TIMEOUT:
+			icon = ICON_X;
+			message = "FAILED TO LOAD";
+			break;
 	}
+
+	graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
+	graphics_draw_text(ctx, icon, fonts_get_font(RESOURCE_ID_FONT_ICONS_32),
+		GRect(58, 23, 32, 32), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+	graphics_draw_text(ctx, message,
+		fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD),
+		GRect(8, 64, PEBBLE_WIDTH-16, 100), GTextOverflowModeWordWrap,
+		GTextAlignmentCenter, NULL);
+
+	graphics_context_set_fill_color(ctx, COLOR_FALLBACK(GColorOxfordBlue, GColorBlack));
+	graphics_fill_rect(ctx, GRect(0, PEBBLE_HEIGHT - 22, PEBBLE_WIDTH, 22), GCornerNone, 0);
+	char footer[16];
+	snprintf(footer, 16, "SLAB %s", VERSION_LABEL);
+	graphics_draw_text(ctx, footer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+	GRect(8, PEBBLE_HEIGHT - 24, PEBBLE_WIDTH - 16, 18), GTextOverflowModeFill,
+		GTextAlignmentCenter, NULL);
 }
 
 static void window_load(Window *window) {
-	splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
-	layer_bitmap = bitmap_layer_create(GRect(0, 0, 144, 168));
-	bitmap_layer_set_bitmap(layer_bitmap, splash);
-	layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(layer_bitmap));
-	status_tl=text_layer_create(GRect(0,128,144,60));
-	text_layer_set_text_alignment(status_tl,GTextAlignmentCenter);
-	text_layer_set_text_color(status_tl,GColorWhite);
-	text_layer_set_background_color(status_tl,GColorBlack);
-	text_layer_set_text(status_tl, "Waiting for slack...");
-	layer_add_child(window_get_root_layer(window),text_layer_get_layer(status_tl));
+	layer = layer_create_fullscreen(window);
+	layer_set_update_proc(layer, layer_update_proc);
+	layer_add_to_window(layer, window);
+	mode = MODE_WAITING;
+	// splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
+	// layer_bitmap = bitmap_layer_create(GRect(0, 0, 144, 168));
+	// bitmap_layer_set_bitmap(layer_bitmap, splash);
+	// layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(layer_bitmap));
+	// status_tl=text_layer_create(GRect(0,128,144,60));
+	// text_layer_set_text_alignment(status_tl,GTextAlignmentCenter);
+	// text_layer_set_text_color(status_tl,GColorWhite);
+	// text_layer_set_background_color(status_tl,GColorBlack);
+	// text_layer_set_text(status_tl, "Waiting for slack...");
+	// layer_add_child(window_get_root_layer(window),text_layer_get_layer(status_tl));
 	tick_timer_service_subscribe(MINUTE_UNIT, handle_time_tick);
 	login_timer=app_timer_register(10000,timeout,NULL);
 }
@@ -57,11 +110,8 @@ static void window_disappear(Window *window) {
 }
 
 static void window_unload(Window *w) {
-	bitmap_layer_destroy(layer_bitmap);
-	gbitmap_destroy(splash);
-	text_layer_destroy(status_tl);
-	status_tl=NULL;
-	window=NULL;
+	layer = NULL;
+	window = NULL;
 }
 
 void sendBufferSize() {
@@ -129,6 +179,10 @@ void rcv(DictionaryIterator *received, void *context) {
 				if (window!=NULL) {
 					window_stack_remove(window,false);
 				}
+				if (login_timer) {
+					app_timer_cancel(login_timer);
+					login_timer = NULL;
+				}
 			} else {
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "IMS: NO IMS");
 			}
@@ -153,8 +207,10 @@ void rcv(DictionaryIterator *received, void *context) {
 		if (strcmp(op,"CONFIG")==0) {
 			if (login_timer!=NULL) {
 				app_timer_cancel(login_timer);
+				login_timer = NULL;
 			}
-			text_layer_set_text(status_tl, "Please configure Slab\nIn the Pebble app");
+			mode = MODE_LOGIN;
+			layer_mark_dirty(layer);
 		}
 		if (strcmp(op,"ERROR")==0) {
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "ERROR!");

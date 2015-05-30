@@ -315,7 +315,3 @@ void addMessages(char * v, int id) {
 		lastupdate=time(NULL);
 	}
 }
-
-
-
-

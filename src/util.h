@@ -16,7 +16,12 @@ void sendCommand(char * op, char * data);
 
 static char SEP[]={(char)0x7f, (char)0x00};
 
-
-#define SETTING_DELIMITER 127
+#define ICON_CHAT "A"
+#define ICON_X "B"
+#define ICON_REFRESH "C"
+#define ICON_PHONE "D"
+#define ICON_CHANNEL "E"
+#define ICON_PRIVATE "F"
+#define ICON_STAR "G"
 
 #endif /* UTIL_H_ */
