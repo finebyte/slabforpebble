@@ -1,6 +1,7 @@
 {
   "globals": { "Pebble" : true },
   "browser": true,
+  "node": true,
   "devel": true,
   "freeze": true,
   "evil": false,

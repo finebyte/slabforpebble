@@ -32,24 +32,21 @@ src/js/src/main.js
 
 */
 
+var AppInfo = require('./generated/appinfo');
+var Analytics = require('../libs/pebble-ga');
+var async = require('async');
+var DEBUG_ACCESS_TOKEN = require('./debug');
+var MessageQueue = require('../libs/message-queue');
+var Slack = require('./slack');
+var Errors = require('./errors');
+var sprintf = require('sprintf');
+var store = require('store');
+var Users = require('./users');
+var State = require('./state');
+var Utils = require('./utils');
 
-/* global AppInfo */
-/* global Analytics */
-/* global async */
-/* global DEBUG_ACCESS_TOKEN */
-/* global MessageQueue */
-/* global Slack */
-/* global Errors */
-/* global sprintf */
-/* global State */
-/* global store */
-/* global Users */
-/* global Utils */
-/* exported DELIM_DEBUG */
+require('./hacks');
 
-
-var DELIM = String.fromCharCode(AppInfo.settings.delimiter);
-var DELIM_DEBUG = '^';
 var maxBufferSize = 1000;
 var sendMessageTimer = null;
 var quickRefreshChannel = null;
@@ -99,7 +96,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
 Pebble.addEventListener('appmessage', function (event) {
   var op = event.payload.op;
   var data = event.payload.data;
-  var dataArray = data.split(DELIM);
+  var dataArray = data.split(Utils.DELIM);
 
   switch (op) {
     case 'MESSAGES':
@@ -174,12 +171,7 @@ function rtmConnect(url) {
     rtmSocket.close();
     rtmSocket = null;
   }
-  if (typeof document !== 'undefined') {
-    rtmSocket = new window.ReconnectingWebSocket(url);
-  }
-  else {
-    rtmSocket = new WebSocket(url);
-  }
+  rtmSocket = new WebSocket(url);
   rtmSocket.onmessage = function (event) {
     var data = JSON.parse(event.data);
     switch (data.type) {
@@ -300,7 +292,7 @@ function sendMessages(id, messages, callback) {
           return callback();
         }
         if (lengthInUtf8Bytes(messageData + str) <= maxMessageLength) {
-          messageData += DELIM + str;
+          messageData += Utils.DELIM + str;
           numMessages += 1;
         }
         else {
@@ -317,7 +309,7 @@ function sendMessages(id, messages, callback) {
       }
       var payload = {
         op: 'MESSAGES',
-        data: id + DELIM + numMessages + DELIM + messageData
+        data: id + Utils.DELIM + numMessages + Utils.DELIM + messageData
       };
       MessageQueue.sendAppMessage(payload, function () {
         callback();
@@ -368,7 +360,7 @@ function sendReplies() {
   data.unshift(replies.length);
   var message = {
     op: 'REPLIES',
-    data: data.join(DELIM)
+    data: data.join(Utils.DELIM)
   };
   MessageQueue.sendAppMessage(message, ack, nack('sendReplies:REPLIES'));
 }

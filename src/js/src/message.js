@@ -32,14 +32,12 @@ src/js/src/message.js
 
 */
 
-
-/* global moment */
-/* global async */
-/* global Users */
-/* global EmojiMap */
-/* global Errors */
-/* global DELIM */
-
+var moment = require('moment');
+var async = require('async');
+var Users = require('./users');
+var EmojiMap = require('./emoji');
+var Errors = require('./errors');
+var Utils = require('./utils');
 
 function Message(data) {
   this.data = data;
@@ -60,7 +58,7 @@ Message.prototype.serialize = function (callback) {
       var msg = [
         name, _this.getTime(), text.length ? text : ' '
       ];
-      return callback(null, msg.join(DELIM));
+      return callback(null, msg.join(Utils.DELIM));
     });
   });
 };
@@ -171,3 +169,5 @@ function processEmoji(text, code) {
   }
   return text;
 }
+
+module.exports = Message;

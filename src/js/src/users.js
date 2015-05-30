@@ -32,12 +32,11 @@ src/js/src/user.js
 
 */
 
-/* global _ */
-/* global Slack */
-/* exported Users */
+var _ = require('lodash');
+var Slack = require('./slack');
 
-// TODO: Move this into the State class.
-var Users = (function () {
+// TODO: Move this into the State object.
+module.exports = (function () {
 
   var users = [];
 

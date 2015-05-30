@@ -137,3 +137,5 @@ var MessageQueue = (function () {
   }
 
 }());
+
+module.exports = MessageQueue;

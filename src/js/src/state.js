@@ -33,13 +33,11 @@ src/js/src/state.js
 */
 
 
-/* exported State */
-/* global _ */
-/* global Channel */
-/* global DELIM */
+var _ = require('lodash');
+var Channel = require('./channel');
+var Utils = require('./utils');
 
-
-var State = (function () {
+module.exports = (function () {
 
   var channels = [];
   var activeChannel = null;
@@ -98,7 +96,7 @@ var State = (function () {
   function serializeChannels(channels) {
     var serializedChannels = _.invoke(channels, 'serialize');
     serializedChannels.unshift(channels.length);
-    return serializedChannels.join(DELIM);
+    return serializedChannels.join(Utils.DELIM);
   }
 
   function sortChannel(channel) {

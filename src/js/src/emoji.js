@@ -33,11 +33,8 @@ src/js/src/emoji.js
 */
 
 
-/* exported EmojiMap */
-
-
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
-var EmojiMap = {
+module.exports = {
   grin: 0x1f601,
   joy: 0x1f602,
   smiley: 0x1f603,

@@ -33,62 +33,51 @@ src/js/src/slack.js
 */
 
 
-/* exported Slack */
-/* global superagent */
+var superagent = require('superagent');
+var accessToken = null;
+var apiRoot = 'https://slack.com/api/';
 
-var Slack = (function () {
+module.exports.setAccessToken = function setAccessToken(token) {
+  accessToken = token;
+};
 
-  var accessToken = null;
-  var apiRoot = 'https://slack.com/api/';
+module.exports.get = function get(method, data, callback) {
+  if (!accessToken) {
+    return callback(new Error('No accessToken!'));
+  }
+  if (!callback && typeof data === 'function') {
+    callback = data;
+    data = {};
+  }
+  data.token = accessToken;
+  superagent.get(apiRoot + method).query(data).end(doCallback(callback));
+};
 
-  return {
-    setAccessToken: setAccessToken,
-    get: get,
-    post: post
+module.exports.post = function post(method, data, callback) {
+  if (!accessToken) {
+    return callback(new Error('No accessToken!'));
+  }
+  if (!callback && typeof data === 'function') {
+    callback = data;
+    data = {};
+  }
+  data.token = accessToken;
+  superagent.post(apiRoot + method).query(data).end(doCallback(callback));
+};
+
+
+function doCallback(callback) {
+  return function (err, res) {
+    if (err) {
+      return callback(err);
+    }
+    if (!res.body) {
+      return callback(
+        new Error('Slack did not respond with well formed JSON'));
+    }
+    if (!res.body.ok) {
+      return callback(new Error(res.body.error));
+    }
+    return callback(null, res.body);
   };
-
-  function setAccessToken(token) {
-    accessToken = token;
-  }
-
-  function get(method, data, callback) {
-    if (!accessToken) {
-      return callback(new Error('No accessToken!'));
-    }
-    if (!callback && typeof data === 'function') {
-      callback = data;
-      data = {};
-    }
-    data.token = accessToken;
-    superagent.get(apiRoot + method).query(data).end(doCallback(callback));
-  }
-
-  function post(method, data, callback) {
-    if (!accessToken) {
-      return callback(new Error('No accessToken!'));
-    }
-    if (!callback && typeof data === 'function') {
-      callback = data;
-      data = {};
-    }
-    data.token = accessToken;
-    superagent.post(apiRoot + method).query(data).end(doCallback(callback));
-  }
-
-  function doCallback(callback) {
-    return function (err, res) {
-      if (err) {
-        return callback(err);
-      }
-      if (!res.body) {
-        return callback(
-          new Error('Slack did not respond with well formed JSON'));
-      }
-      if (!res.body.ok) {
-        return callback(new Error(res.body.error));
-      }
-      return callback(null, res.body);
-    };
-  }
-
-}());
+}

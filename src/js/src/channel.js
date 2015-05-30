@@ -33,12 +33,10 @@ src/js/src/channel.js
 */
 
 
-/* global _ */
-/* global DELIM */
-/* global DELIM_DEBUG */
-/* global Message */
-/* global Users */
-
+var _ = require('lodash');
+var Utils = require('./utils');
+var Message = require('./message');
+var Users = require('./users');
 
 function Channel(data) {
   this.data = data;
@@ -56,8 +54,8 @@ Channel.prototype.serialize = function () {
     this.getDisplayName(),
     this.getUnreadCount()
   ];
-  console.log('Channel Serialised: ' + fields.join(DELIM_DEBUG));
-  return fields.join(DELIM);
+  console.log('Channel Serialised: ' + fields.join(Utils.DELIM_DEBUG));
+  return fields.join(Utils.DELIM);
 };
 
 Channel.prototype.addMessage = function (message) {
@@ -136,3 +134,5 @@ Channel.prototype.isStarred = function () {
   return !!this.data.is_starred;
   // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
 };
+
+module.exports = Channel;

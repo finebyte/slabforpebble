@@ -88,8 +88,6 @@ def build(ctx):
         '../src/js/src/state.js',
         '../src/js/src/main.js'
     ]
-    if os.path.isfile('src/js/src/debug.js'):
-        js_sources.append('../src/js/src/debug.js');
 
     built_js = '../src/js/pebble-js-app.js'
 
@@ -115,7 +113,7 @@ def build(ctx):
 
     # Combine the source JS files into a single JS file.
     ctx(rule=concatenate_js,
-        source=' '.join(js_libs + js_sources),
+        source=js_sources,
         target=built_js)
 
     # Use Rockit to build the app
@@ -151,8 +149,7 @@ def generate_appinfo_js(task):
 
     f = open(target, 'w')
     write_comment_header(f, 'src/js/src/generated/appinfo.js', appinfo)
-    f.write('/* exported AppInfo */\n\n')
-    f.write('var AppInfo = ')
+    f.write('module.exports = ')
     f.write(data)
     f.write(';')
     f.close()
@@ -201,11 +198,8 @@ THE SOFTWARE.
 
 def concatenate_js(task):
     task.ext_out = '.js'
-
-    uglifyjs = sh.Command("./node_modules/.bin/uglifyjs")
-
-    inputs = (input.abspath() for input in task.inputs)
-    uglifyjs(*inputs, o=task.outputs[0].abspath(), b=True, indent_level=2)
+    browserify = sh.Command("./node_modules/.bin/browserify")
+    browserify(task.inputs[-1].abspath(), o=task.outputs[0].abspath())
 
 
 def make_test(task):
