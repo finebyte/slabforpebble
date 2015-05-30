@@ -42,6 +42,9 @@ static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t secti
 
 // This is the menu item draw callback where you specify what each item should look like
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
+	#ifdef PBL_BW
+	graphics_context_set_text_color(ctx, GColorBlack);
+	#endif
 	chan_info* channel = &channels[cell_index->section].chans[cell_index->row];
 	graphics_draw_text(ctx, channel_icon_str(channel),
 		fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 32, 16),
