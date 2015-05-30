@@ -14,9 +14,9 @@
   "devDependencies": {
     "browserify": "^10.2.3",
     "jscs": "^1.13.1",
-    "jscs-stylish": "^0.5.1",
+    "jscs-stylish": "^0.3.1",
     "jshint": "^2.7.0",
-    "jshint-stylish-ex": "^0.5.0"
+    "jshint-stylish-ex": "^0.2.0"
   },
   "dependencies": {
     "async": "^1.0.0",
