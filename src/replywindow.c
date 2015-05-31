@@ -96,7 +96,7 @@ void replywindow_appear(Window *window) {
 	static char titleText[40];
 	snprintf(titleText,40,"Reply %s", rw->replyTo);
 
-	rw->title_layer = title_layer_create(GRect(0,0,144,24), titleText);
+	rw->title_layer = title_layer_create(GRect(0,0,144,24), titleText, ICON_CHAT);
 
 	layer_add_child(mainWindowLayer,title_layer_get_layer(rw->title_layer));
 

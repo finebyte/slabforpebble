@@ -10,6 +10,9 @@
 #include "channelwindow.h"
 #include "replywindow.h"
 #include "title_layer.h"
+#include <font-loader.h>
+#include <pebble-assist.h>
+
 
 chan_info * myChan=NULL;
 
@@ -69,31 +72,58 @@ static uint16_t chat_get_num_rows_callback(MenuLayer *menu_layer, uint16_t secti
 
 // This is the menu item draw callback where you specify what each item should look like
 static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
-	// Determine which section we're going to draw in
-	//	menu_cell_basic_draw(ctx, cell_layer, chats[cell_index->section].chans[cell_index->row].msg, chats[cell_index->section].chans[cell_index->row/].name, NULL);
 
 	GRect b = layer_get_bounds(cell_layer);
 
-#ifdef PBL_PLATFORM_APLITE
-	graphics_context_set_text_color(ctx,GColorBlack);
+#ifdef PBL_BW
+graphics_context_set_text_color(ctx, GColorBlack);
 #endif
 
-	graphics_draw_text(ctx,
-			chats[cell_index->section].msgs[cell_index->row].title,
-			fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-			GRect(b.origin.x,b.origin.y,b.size.w,18),
-			GTextOverflowModeTrailingEllipsis,
-			GTextAlignmentLeft,
-			NULL);
+chat_msg * chat = &chats[cell_index->section].msgs[cell_index->row];
 
+char * row_0_txt="SEND MESSAGE";
+char * row_0_icon=ICON_CHAT;
 
-	graphics_draw_text(ctx,
-			chats[cell_index->section].msgs[cell_index->row].msg,
-			fonts_get_system_font(FONT_KEY_GOTHIC_18),
-			GRect(b.origin.x,b.origin.y+14,b.size.w,b.size.h-18),
-			GTextOverflowModeTrailingEllipsis,
-			GTextAlignmentLeft,
-			NULL);
+if (strcmp(chat->name,"load")==0) {
+
+	row_0_txt="LOADING";
+	row_0_icon=ICON_REFRESH;
+
+}
+
+if (cell_index->row==0) {
+	graphics_draw_text(ctx, row_0_txt,
+		fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+		GRect(5, 0, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+		GTextAlignmentLeft, NULL);
+	graphics_draw_text(ctx, row_0_icon,
+		fonts_get_font(RESOURCE_ID_FONT_ICONS_16),
+		GRect(PEBBLE_WIDTH-20, 4, 16, 16),
+		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+
+} else {
+
+#define TIME_WIDTH 35
+// time
+graphics_draw_text(ctx, chat->time,
+	fonts_get_system_font(FONT_KEY_GOTHIC_18),
+	GRect(1, -5, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+	GTextAlignmentLeft, NULL);
+
+// name
+graphics_draw_text(ctx, chat->name,
+	fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+	GRect(TIME_WIDTH, -5, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
+	GTextAlignmentLeft, NULL);
+
+//
+graphics_draw_text(ctx, chat->msg,
+	fonts_get_system_font(FONT_KEY_GOTHIC_18),
+	GRect(1, 9, PEBBLE_WIDTH, b.size.h-10), GTextOverflowModeTrailingEllipsis,
+	GTextAlignmentLeft, NULL);
+
+}
+
 
 }
 
@@ -123,7 +153,8 @@ int16_t chat_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_in
 			GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft);
 
-	return s.h + 18 + 10;
+//	return s.h + 18 + 10;
+	return s.h + 14;
 }
 
 void chat_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {
@@ -135,7 +166,7 @@ void chat_load(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
-	title_layer = title_layer_create(GRect(0,0,144,24), chatTitle);
+	title_layer = title_layer_create(GRect(0,0,144,24), myChan->name, channel_icon_str(myChan));
 
 	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 

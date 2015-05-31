@@ -30,5 +30,7 @@ typedef struct  {
 	chan_info * chans;
 } chan_group;
 
+char* channel_icon_str(chan_info* channel);
+
 
 #endif /* CHANNELWINDOW_H_ */
