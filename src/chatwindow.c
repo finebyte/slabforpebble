@@ -83,11 +83,11 @@ if (strcmp(chat->name,"load")==0) {
 if (cell_index->row==0) {
 	graphics_draw_text(ctx, row_0_txt,
 		fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-		GRect(6, 7, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+		GRect(6, 9, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
 		GTextAlignmentLeft, NULL);
 	graphics_draw_text(ctx, row_0_icon,
-		fonts_get_font(RESOURCE_ID_FONT_ICONS_16),
-		GRect(PEBBLE_WIDTH-20, 11, 16, 16),
+		fonts_get_font(RESOURCE_ID_FONT_ICONS_32),
+		GRect(PEBBLE_WIDTH-32, 3, 32, 32),
 		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 
 } else {
