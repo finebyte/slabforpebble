@@ -61,7 +61,7 @@ Message.prototype.serialize = function (callback) {
         });
       }
       else {
-        this.getUserName(function (err, name) {
+        _this.getUserName(function (err, name) {
           if (err) {
             Errors.send(err, 'Message.serialize:getUserName');
             name = _this.data.user;
