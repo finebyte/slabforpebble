@@ -43,6 +43,7 @@ var sprintf = require('sprintf');
 var store = require('store');
 var Users = require('./users');
 var State = require('./state');
+var Bots = require('./bots');
 var Utils = require('./utils');
 require('./hacks');
 
@@ -155,6 +156,9 @@ function rtmStart() {
     });
     data.ims.forEach(function (channel) {
       State.addChannel(channel);
+    });
+    data.bots.forEach(function (bot) {
+      Bots.add(bot);
     });
     Users.load(data.users);
     sendInitialState();
@@ -279,7 +283,7 @@ function sendMessages(id, messages, callback) {
     function (callback) {
       var message = messages[m];
       m += 1;
-      if (message.data.subtype) {
+      if (message.data.subtype && message.data.subtype !== 'bot_message') {
         console.log(
           sprintf('Skipping message with subtype %s', message.data.subtype));
         return callback();

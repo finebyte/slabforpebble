@@ -33,8 +33,10 @@ src/js/src/message.js
 */
 
 var moment = require('moment');
+var sprintf = require('sprintf');
 var async = require('async');
 var Users = require('./users');
+var Bots = require('./bots');
 var EmojiMap = require('./emoji');
 var Errors = require('./errors');
 var Utils = require('./utils');
@@ -45,21 +47,64 @@ function Message(data) {
 
 Message.prototype.serialize = function (callback) {
   var _this = this;
-  this.getUserName(function (err, name) {
-    if (err) {
-      Errors.send(err, 'Message.serialize:getUserName');
-      name = _this.data.user;
-    }
-    _this.getText(function (err, text) {
-      if (err) {
-        Errors.send(err, 'Message.serialize:getText');
-        text = _this.data.text;
+  var msg = [];
+  async.series([
+    function (next) {
+      if (_this.data.subtype === 'bot_message') {
+        _this.getBotName(function (err, name) {
+          if (err) {
+            Errors.send(err, 'Message.serialize:getUserName');
+            name = 'BOT';
+          }
+          msg.push(name);
+          next();
+        });
       }
-      var msg = [
-        name, _this.getTime(), text.length ? text : ' '
-      ];
-      return callback(null, msg.join(Utils.DELIM));
-    });
+      else {
+        this.getUserName(function (err, name) {
+          if (err) {
+            Errors.send(err, 'Message.serialize:getUserName');
+            name = _this.data.user;
+          }
+          msg.push(name);
+          next();
+        });
+      }
+    },
+    function (next) {
+      msg.push(_this.getTime());
+      next();
+    },
+     function (next) {
+       _this.getText(function (err, text) {
+         if (err) {
+           Errors.send(err, 'Message.serialize:getText');
+           text = _this.data.text;
+         }
+         if (_this.data.attachments && _this.data.attachments.length) {
+           if (!text.length && _this.data.attachments.length === 1 &&
+             _this.data.attachments[0].fallback.length) {
+             text = _this.data.attachments[0].fallback;
+           }
+           else {
+             text += sprintf('<%d attachment%s>', _this.data.attachments.length,
+               _this.data.attachments.length === 1 ? '' : 's');
+           }
+         }
+         text = text.trim();
+         if (!text.length) {
+           text = 'NO MESSAGE';
+         }
+         msg.push(text);
+         next();
+       });
+     }
+  ],
+  function (err) {
+    if (err) {
+      return callback(err);
+    }
+    return callback(null, msg.join(Utils.DELIM));
   });
 };
 
@@ -67,6 +112,18 @@ Message.prototype.getUserName = function (callback) {
   var user = Users.findById(this.data.user);
   if (user) {
     return setTimeout(function () { callback(null, user.name); }, 0);
+  }
+  setTimeout(function () {
+    callback(new Error('Have not implemented user lookup.'));
+  }, 0);
+};
+
+Message.prototype.getBotName = function (callback) {
+  // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+  var bot = Bots.get(this.data.bot_id);
+  // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
+  if (bot) {
+    return setTimeout(function () { callback(null, bot.name); }, 0);
   }
   setTimeout(function () {
     callback(new Error('Have not implemented user lookup.'));

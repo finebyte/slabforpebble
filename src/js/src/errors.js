@@ -3,6 +3,7 @@ var Utils = require('./utils');
 var AppInfo = require('./generated/appinfo');
 
 module.exports.send = function (err, context) {
+  console.log(context + ' :: ' + err.toString());
   try {
     var body = {
       err: err ? err.message || err.toString() : 'Unknown error',
