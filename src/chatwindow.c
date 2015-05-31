@@ -94,11 +94,11 @@ if (strcmp(chat->name,"load")==0) {
 if (cell_index->row==0) {
 	graphics_draw_text(ctx, row_0_txt,
 		fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-		GRect(5, 0, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+		GRect(6, 7, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
 		GTextAlignmentLeft, NULL);
 	graphics_draw_text(ctx, row_0_icon,
 		fonts_get_font(RESOURCE_ID_FONT_ICONS_16),
-		GRect(PEBBLE_WIDTH-20, 4, 16, 16),
+		GRect(PEBBLE_WIDTH-20, 11, 16, 16),
 		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 
 } else {
@@ -107,19 +107,19 @@ if (cell_index->row==0) {
 // time
 graphics_draw_text(ctx, chat->time,
 	fonts_get_system_font(FONT_KEY_GOTHIC_18),
-	GRect(1, -5, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+	GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
 	GTextAlignmentLeft, NULL);
 
 // name
 graphics_draw_text(ctx, chat->name,
 	fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-	GRect(TIME_WIDTH, -5, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
+	GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
 	GTextAlignmentLeft, NULL);
 
 //
 graphics_draw_text(ctx, chat->msg,
-	fonts_get_system_font(FONT_KEY_GOTHIC_18),
-	GRect(1, 9, PEBBLE_WIDTH, b.size.h-10), GTextOverflowModeTrailingEllipsis,
+	fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+	GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
 	GTextAlignmentLeft, NULL);
 
 }
@@ -148,13 +148,15 @@ int16_t chat_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_in
 
 	GSize s = graphics_text_layout_get_content_size(
 			chats[cell_index->section].msgs[cell_index->row].msg,
-			fonts_get_system_font(FONT_KEY_GOTHIC_18),
+			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
 			GRect(0,0,144,144-28),
 			GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft);
 
-//	return s.h + 18 + 10;
-	return s.h + 14;
+	if (s.h > 72) {
+		return 90;
+	}
+	return s.h + 18;
 }
 
 void chat_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {

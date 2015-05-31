@@ -26,11 +26,11 @@ static void title_layer_update_proc(Layer *layer, GContext* ctx) {
 		// Draw the text
 
 		graphics_draw_text(ctx, title_layer->icon,
-			fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 16, 16),
+			fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(3, 2, 16, 16),
 			GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 		graphics_draw_text(ctx, title_layer->title,
-			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-			GRect(22, -6, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+			fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+			GRect(22, -2, PEBBLE_WIDTH - 24, 18), GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft, NULL);
 
 //
@@ -79,5 +79,3 @@ void title_layer_destroy(TitleLayer *title_layer) {
 Layer* title_layer_get_layer(TitleLayer *title_layer) {
 	return title_layer->layer;
 }
-
-
