@@ -14,9 +14,6 @@
 #include <pebble-assist.h>
 
 
-static char* channel_icon_str(chan_info* channel);
-
-
 static Window *window=NULL;
 static MenuLayer *menu_layer;
 static TextLayer  * watchInfo;
@@ -232,7 +229,7 @@ void addChannels(char * v, int id) {
 
 }
 
-static char* channel_icon_str(chan_info* channel) {
+char* channel_icon_str(chan_info* channel) {
 	if (channel->id[0] == 'D') {
 		return ICON_CHAT;
 	}
