@@ -23,6 +23,7 @@ static MenuLayer *menu_layer=NULL;
 static TitleLayer *title_layer;
 static AppTimer * refresh_timer;
 static time_t lastupdate;
+int current_item=0;
 
 
 chat_group chats[1];
@@ -119,6 +120,8 @@ graphics_draw_text(ctx, chat->msg,
 void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
 
+	current_item=cell_index->row;
+
 	if (strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) {
 		replywindow_create(myChan,"", get_myReplies());
 	} else {
@@ -137,6 +140,9 @@ void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
 
 void chat_select_long_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
+
+	current_item=cell_index->row;
+
 
 	if ((strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) ||
 			(myChan->id[0]=='D')) {
@@ -196,6 +202,11 @@ void chat_appear(Window *window) {
 
 	// Bind the menu layer's click config provider to the window for interactivity
 	menu_layer_set_click_config_onto_window(menu_layer, window);
+
+	MenuIndex indx;
+	indx.section=0;
+	indx.row=current_item;
+	menu_layer_set_selected_index(menu_layer,indx,MenuRowAlignCenter,false);
 
 #ifdef PBL_COLOR
 	menu_layer_set_highlight_colors(menu_layer, COLOR_PRIMARY, GColorWhite);
@@ -259,6 +270,7 @@ void chatwindow_create(chan_info * chan) {
 		resetChatData();
 	}
 
+	current_item=0;
 	myChan = chan;
 	sendCommand("MESSAGES",chan->id);
 	chatTitle=chan->name;

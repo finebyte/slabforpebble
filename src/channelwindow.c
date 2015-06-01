@@ -20,6 +20,7 @@ static TextLayer  * watchInfo;
 static TitleLayer * title_layer;
 static AppTimer * refresh_chan_timer=NULL;
 
+static MenuIndex current_item;
 
 
 char * sectionTitles[]={"STARRED","CHANNELS", "GROUPS", "DM" };
@@ -59,6 +60,10 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 // Here we capture when a user selects a menu item
 void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
+
+	current_item.row=cell_index->row;
+	current_item.section=cell_index->section;
+
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %d " , channels[cell_index->section].chans[cell_index->row].name , channels[cell_index->section].chans[cell_index->row].id, channels[cell_index->section].chans[cell_index->row].unread);
 	chatwindow_create(&channels[cell_index->section].chans[cell_index->row]);
 }
@@ -86,7 +91,7 @@ void menu_layer_draw_separator_callback(GContext *ctx, const Layer *cell_layer, 
 }
 
 // This initializes the menu upon window load
-void window_load(Window *window) {
+void window_appear(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
@@ -117,6 +122,8 @@ void window_load(Window *window) {
 	// Bind the menu layer's click config provider to the window for interactivity
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 
+	menu_layer_set_selected_index(menu_layer,current_item,MenuRowAlignCenter,false);
+
 	// Add it to the window for display
 	layer_add_child(mainWindowLayer, menu_layer_get_layer(menu_layer));
 }
@@ -142,10 +149,12 @@ void channelwindow_create() {
 #ifdef PBL_SDK_2
 		window_set_fullscreen(window,true);
 #endif
+		current_item.section=0;
+		current_item.row=0;
 
 		// Setup the window handlers
 		window_set_window_handlers(window, (WindowHandlers) {
-			.appear = &window_load,
+			.appear = &window_appear,
 					.disappear = &window_disappear,
 					.unload = &window_unload
 		});

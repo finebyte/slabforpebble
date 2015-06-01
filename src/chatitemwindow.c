@@ -84,8 +84,8 @@ void chatitem_appear(Window *window) {
 	GSize s = graphics_text_layout_get_content_size(
 			chat->msg,
 				fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-				GRect(0,0,144,2000),
-				GTextOverflowModeFill,
+				GRect(0,0,PEBBLE_WIDTH - 8,2000),
+				GTextOverflowModeTrailingEllipsis,
 				GTextAlignmentLeft);
 
 
@@ -96,7 +96,10 @@ void chatitem_appear(Window *window) {
 
 	// Set the initial max size
 //	scroll_layer_set_content_size(scroll_layer, GSize(144,2000));
-	scroll_layer_set_content_size(scroll_layer, s);
+
+	APP_LOG(APP_LOG_LEVEL_DEBUG,"Size = %d", s.h);
+
+	scroll_layer_set_content_size(scroll_layer, GSize(s.w,s.h+48));
 
 	scroll_layer_set_click_config_onto_window(scroll_layer,window);
 	scroll_layer_set_callbacks(scroll_layer, (ScrollLayerCallbacks) {
