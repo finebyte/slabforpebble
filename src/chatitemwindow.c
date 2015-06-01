@@ -58,11 +58,11 @@ static void chat_item_blob_update(Layer * layer, GContext * ctx) {
 
 // Here we capture when a user selects a menu item
 void chatitem_select_click(ClickRecognizerRef  ref, void *data) {
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked sel");
-		static char replyToBuffer[100];
-		snprintf(replyToBuffer,100,"@%s: ", chat->name);
-		replywindow_create(myChan,replyToBuffer, get_myReplies());
-		window_stack_remove(window,false);
+	//	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked sel on the chat_item");
+	static char replyToBuffer[100];
+	snprintf(replyToBuffer,100,"@%s: ", chat->name);
+	replywindow_create(myChan,replyToBuffer, get_myReplies());
+	window_stack_remove(window,false);
 }
 
 void click_config(void * data) {
@@ -83,21 +83,16 @@ void chatitem_appear(Window *window) {
 
 	GSize s = graphics_text_layout_get_content_size(
 			chat->msg,
-				fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-				GRect(0,0,PEBBLE_WIDTH - 8,2000),
-				GTextOverflowModeTrailingEllipsis,
-				GTextAlignmentLeft);
+			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+			GRect(0,0,PEBBLE_WIDTH - 8,2000),
+			GTextOverflowModeTrailingEllipsis,
+			GTextAlignmentLeft);
 
 
 	chat_item_layer = layer_create(GRect(0,0,144,2000));
 	layer_set_update_proc(chat_item_layer, chat_item_update);
 
 	scroll_layer = scroll_layer_create(GRect (0,24,144,144));
-
-	// Set the initial max size
-//	scroll_layer_set_content_size(scroll_layer, GSize(144,2000));
-
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"Size = %d", s.h);
 
 	scroll_layer_set_content_size(scroll_layer, GSize(s.w,s.h+48));
 
@@ -140,8 +135,8 @@ void chatitem_window_create(chan_info * chan, chat_msg * c) {
 	// Setup the window handlers
 	window_set_window_handlers(window, (WindowHandlers) {
 		.appear = chatitem_appear,
-		.disappear = chatitem_disappear,
-		.unload = chatitem_unload
+				.disappear = chatitem_disappear,
+				.unload = chatitem_unload
 	});
 
 	window_stack_push(window,true);
