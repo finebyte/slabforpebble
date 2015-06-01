@@ -81,13 +81,22 @@ void chatitem_appear(Window *window) {
 
 	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 
+	GSize s = graphics_text_layout_get_content_size(
+			chat->msg,
+				fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+				GRect(0,0,144,2000),
+				GTextOverflowModeFill,
+				GTextAlignmentLeft);
+
+
 	chat_item_layer = layer_create(GRect(0,0,144,2000));
 	layer_set_update_proc(chat_item_layer, chat_item_update);
 
 	scroll_layer = scroll_layer_create(GRect (0,24,144,144));
 
 	// Set the initial max size
-	scroll_layer_set_content_size(scroll_layer, GSize(144,2000));
+//	scroll_layer_set_content_size(scroll_layer, GSize(144,2000));
+	scroll_layer_set_content_size(scroll_layer, s);
 
 	scroll_layer_set_click_config_onto_window(scroll_layer,window);
 	scroll_layer_set_callbacks(scroll_layer, (ScrollLayerCallbacks) {

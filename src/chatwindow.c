@@ -19,7 +19,7 @@
 chan_info * myChan=NULL;
 
 static Window *window=NULL;
-static MenuLayer *menu_layer;
+static MenuLayer *menu_layer=NULL;
 static TitleLayer *title_layer;
 static AppTimer * refresh_timer;
 static time_t lastupdate;
@@ -135,6 +135,20 @@ void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
 //	}
 }
 
+void chat_select_long_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
+	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
+
+	if ((strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) ||
+			(myChan->id[0]=='D')) {
+				replywindow_create(myChan,"", get_myReplies());
+	} else {
+		static char replyToBuffer[100];
+		snprintf(replyToBuffer,100,"@%s: ",chats[cell_index->section].msgs[cell_index->row].name);
+		replywindow_create(myChan,replyToBuffer, get_myReplies());
+	}
+}
+
+
 int16_t chat_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
 	return MENU_CELL_BASIC_HEADER_HEIGHT;
 }
@@ -159,7 +173,7 @@ void chat_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t 
 }
 
 // This initializes the menu upon window load
-void chat_load(Window *window) {
+void chat_appear(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
@@ -177,6 +191,7 @@ void chat_load(Window *window) {
 		.get_num_rows = chat_get_num_rows_callback,
 		.draw_row = chat_draw_row_callback,
 		.select_click = chat_select_callback,
+		.select_long_click = chat_select_long_callback
 	});
 
 	// Bind the menu layer's click config provider to the window for interactivity
@@ -194,6 +209,7 @@ void chat_disappear(Window *window) {
 	// Destroy the menu layer
 	layer_remove_from_parent(menu_layer_get_layer(menu_layer));
 	menu_layer_destroy(menu_layer);
+	menu_layer=NULL;
 	title_layer_destroy(title_layer);
 }
 
@@ -254,7 +270,7 @@ void chatwindow_create(chan_info * chan) {
 
 	// Setup the window handlers
 	window_set_window_handlers(window, (WindowHandlers) {
-		.appear = chat_load,
+		.appear = chat_appear,
 		.disappear = chat_disappear,
 		.unload = chat_unload
 	});
@@ -267,7 +283,7 @@ void chatwindow_create(chan_info * chan) {
 }
 
 void chatwindow_update() {
-	if (window!=NULL) {
+	if (menu_layer!=NULL) {
 		menu_layer_reload_data(menu_layer);
 		layer_mark_dirty(window_get_root_layer(window));
 	}
