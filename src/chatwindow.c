@@ -10,25 +10,13 @@
 #include "channelwindow.h"
 #include "replywindow.h"
 #include "title_layer.h"
+#include "chatwindow.h"
+#include "chatitemwindow.h"
 #include <font-loader.h>
 #include <pebble-assist.h>
 
 
 chan_info * myChan=NULL;
-
-typedef struct  {
-	char * name;
-	char * msg;
-	char * time;
-	char * title;
-} chat_msg;
-
-
-typedef struct  {
-	uint8_t num;
-	chat_msg * msgs;
-} chat_group;
-
 
 static Window *window=NULL;
 static MenuLayer *menu_layer;
@@ -130,14 +118,21 @@ graphics_draw_text(ctx, chat->msg,
 // Here we capture when a user selects a menu item
 void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked on %s %s %s " , chats[cell_index->section].msgs[cell_index->row].name , chats[cell_index->section].msgs[cell_index->row].msg, chats[cell_index->section].msgs[cell_index->row].time);
-	if ((strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) ||
-			(myChan->id[0]=='D')) {
+
+	if (strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) {
 		replywindow_create(myChan,"", get_myReplies());
 	} else {
-		static char replyToBuffer[100];
-		snprintf(replyToBuffer,100,"@%s: ",chats[cell_index->section].msgs[cell_index->row].name);
-		replywindow_create(myChan,replyToBuffer, get_myReplies());
+		chatitem_window_create(myChan, &chats[cell_index->section].msgs[cell_index->row]);
 	}
+
+//		||
+//	}
+//			(myChan->id[0]=='D')) {
+//	} else {
+//		static char replyToBuffer[100];
+//		snprintf(replyToBuffer,100,"@%s: ",chats[cell_index->section].msgs[cell_index->row].name);
+//		replywindow_create(myChan,replyToBuffer, get_myReplies());
+//	}
 }
 
 int16_t chat_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
