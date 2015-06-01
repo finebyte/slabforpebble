@@ -31,6 +31,12 @@
       {
         "type": "font",
         "file": "fonts/icons.ttf",
+        "name": "FONT_ICONS_24",
+        "characterRegex": "[A-H]"
+      },
+      {
+        "type": "font",
+        "file": "fonts/icons.ttf",
         "name": "FONT_ICONS_32",
         "characterRegex": "[A-H]"
       }

@@ -83,8 +83,8 @@ if (cell_index->row==0) {
 		GRect(6, 9, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
 		GTextAlignmentLeft, NULL);
 	graphics_draw_text(ctx, row_0_icon,
-		fonts_get_font(RESOURCE_ID_FONT_ICONS_32),
-		GRect(PEBBLE_WIDTH-32, 3, 32, 32),
+		fonts_get_font(RESOURCE_ID_FONT_ICONS_24),
+		GRect(PEBBLE_WIDTH-28, 7, 24, 24),
 		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 	} else {
 
@@ -150,7 +150,7 @@ int16_t chat_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_in
 	GSize s = graphics_text_layout_get_content_size(
 			chats[cell_index->section].msgs[cell_index->row].msg,
 			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-			GRect(0,0,144,144-28),
+			GRect(0,0,PEBBLE_WIDTH - 8,144-28),
 			GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft);
 

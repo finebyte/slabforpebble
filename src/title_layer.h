@@ -5,7 +5,7 @@
  *      Author: turcja
  */
 
-#include "pebble.h"
+#include <pebble.h>
 
 #ifndef TITLE_LAYER_H_
 #define TITLE_LAYER_H_
