@@ -53,32 +53,29 @@ static uint16_t chat_get_num_sections_callback(MenuLayer *menu_layer, void *data
 	return 1;
 }
 
-// Each section has a number of items;  we use a callback to specify this
-// You can also dynamically add and remove items using this
 static uint16_t chat_get_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
 	return chats[section_index].num;
 }
 
-// This is the menu item draw callback where you specify what each item should look like
 static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
 
 	GRect b = layer_get_bounds(cell_layer);
 
 #ifdef PBL_BW
-graphics_context_set_text_color(ctx, GColorBlack);
+	graphics_context_set_text_color(ctx, GColorBlack);
 #endif
 
-chat_msg * chat = &chats[cell_index->section].msgs[cell_index->row];
+	chat_msg * chat = &chats[cell_index->section].msgs[cell_index->row];
 
-char * row_0_txt="SEND MESSAGE";
-char * row_0_icon=ICON_CHAT;
+	char * row_0_txt="SEND MESSAGE";
+	char * row_0_icon=ICON_CHAT;
 
-if (strcmp(chat->name,"load")==0) {
+	if (strcmp(chat->name,"load")==0) {
 
-	row_0_txt="LOADING";
-	row_0_icon=ICON_REFRESH;
+		row_0_txt="LOADING";
+		row_0_icon=ICON_REFRESH;
 
-}
+	}
 
 if (cell_index->row==0) {
 	graphics_draw_text(ctx, row_0_txt,
@@ -89,29 +86,28 @@ if (cell_index->row==0) {
 		fonts_get_font(RESOURCE_ID_FONT_ICONS_32),
 		GRect(PEBBLE_WIDTH-32, 3, 32, 32),
 		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
-
-} else {
+	} else {
 
 #define TIME_WIDTH 35
-// time
-graphics_draw_text(ctx, chat->time,
-	fonts_get_system_font(FONT_KEY_GOTHIC_18),
-	GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
-	GTextAlignmentLeft, NULL);
+		// time
+		graphics_draw_text(ctx, chat->time,
+				fonts_get_system_font(FONT_KEY_GOTHIC_18),
+				GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+				GTextAlignmentLeft, NULL);
 
-// name
-graphics_draw_text(ctx, chat->name,
-	fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-	GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
-	GTextAlignmentLeft, NULL);
+		// name
+		graphics_draw_text(ctx, chat->name,
+				fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+				GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
+				GTextAlignmentLeft, NULL);
 
-//
-graphics_draw_text(ctx, chat->msg,
-	fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-	GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
-	GTextAlignmentLeft, NULL);
+		//
+		graphics_draw_text(ctx, chat->msg,
+				fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+				GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
+				GTextAlignmentLeft, NULL);
 
-}
+	}
 
 
 }
@@ -127,15 +123,6 @@ void chat_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *da
 	} else {
 		chatitem_window_create(myChan, &chats[cell_index->section].msgs[cell_index->row]);
 	}
-
-//		||
-//	}
-//			(myChan->id[0]=='D')) {
-//	} else {
-//		static char replyToBuffer[100];
-//		snprintf(replyToBuffer,100,"@%s: ",chats[cell_index->section].msgs[cell_index->row].name);
-//		replywindow_create(myChan,replyToBuffer, get_myReplies());
-//	}
 }
 
 void chat_select_long_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
@@ -143,10 +130,9 @@ void chat_select_long_callback(MenuLayer *menu_layer, MenuIndex *cell_index, voi
 
 	current_item=cell_index->row;
 
-
 	if ((strcmp(chats[cell_index->section].msgs[cell_index->row].name,"newmsg")==0) ||
 			(myChan->id[0]=='D')) {
-				replywindow_create(myChan,"", get_myReplies());
+		replywindow_create(myChan,"", get_myReplies());
 	} else {
 		static char replyToBuffer[100];
 		snprintf(replyToBuffer,100,"@%s: ",chats[cell_index->section].msgs[cell_index->row].name);
@@ -193,11 +179,11 @@ void chat_appear(Window *window) {
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
 		.get_num_sections = chat_get_num_sections_callback,
-		.get_cell_height = chat_get_cell_height_callback,
-		.get_num_rows = chat_get_num_rows_callback,
-		.draw_row = chat_draw_row_callback,
-		.select_click = chat_select_callback,
-		.select_long_click = chat_select_long_callback
+				.get_cell_height = chat_get_cell_height_callback,
+				.get_num_rows = chat_get_num_rows_callback,
+				.draw_row = chat_draw_row_callback,
+				.select_click = chat_select_callback,
+				.select_long_click = chat_select_long_callback
 	});
 
 	// Bind the menu layer's click config provider to the window for interactivity
@@ -254,7 +240,7 @@ void refresh(void * data) {
 	}
 
 	app_timer_reschedule(refresh_timer,2*60*1000);
-//	refresh_timer=app_timer_register(2*60*1000,refresh,NULL);
+	//	refresh_timer=app_timer_register(2*60*1000,refresh,NULL);
 
 }
 
@@ -283,8 +269,8 @@ void chatwindow_create(chan_info * chan) {
 	// Setup the window handlers
 	window_set_window_handlers(window, (WindowHandlers) {
 		.appear = chat_appear,
-		.disappear = chat_disappear,
-		.unload = chat_unload
+				.disappear = chat_disappear,
+				.unload = chat_unload
 	});
 
 	refresh_timer = app_timer_register(60*2*1000, refresh,NULL);
@@ -321,7 +307,7 @@ void addMessages(char * v, int id) {
 			chats[id].msgs = malloc (sizeof(chat_msg) * chats[id].num);
 		}
 
-//		chats[0].msgs[0]=*chat_msg_create("New Message","newmsg","Contribute","00:00");
+		//		chats[0].msgs[0]=*chat_msg_create("New Message","newmsg","Contribute","00:00");
 		chats[0].msgs[0].title=strdup("Contribute");
 		chats[0].msgs[0].msg=strdup("New Message");
 		chats[0].msgs[0].time=strdup("00:00");
@@ -352,11 +338,11 @@ void addMessages(char * v, int id) {
 					snprintf(chats[id].msgs[i].title,title_len,"%s %s",
 							chats[id].msgs[i].time,
 							chats[id].msgs[i].name);
-//					APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
-//							heap_bytes_free(),
-//							i,
-//							chats[id].msgs[i].title,
-//							chats[id].msgs[i].msg);
+					//					APP_LOG(APP_LOG_LEVEL_DEBUG,"chat %u %d %s:%s",
+					//							heap_bytes_free(),
+					//							i,
+					//							chats[id].msgs[i].title,
+					//							chats[id].msgs[i].msg);
 				} else {
 					APP_LOG(APP_LOG_LEVEL_ERROR,"Bad chat msg, NULL msg for %s", chats[id].msgs[i].name );
 

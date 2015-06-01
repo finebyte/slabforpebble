@@ -40,22 +40,22 @@ static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t secti
 
 // This is the menu item draw callback where you specify what each item should look like
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
-	#ifdef PBL_BW
+#ifdef PBL_BW
 	graphics_context_set_text_color(ctx, GColorBlack);
-	#endif
+#endif
 	chan_info* channel = &channels[cell_index->section].chans[cell_index->row];
 	graphics_draw_text(ctx, channel_icon_str(channel),
-		fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 16, 16),
-		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+			fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 16, 16),
+			GTextOverflowModeFill, GTextAlignmentCenter, NULL);
 	graphics_draw_text(ctx, channel->name,
-		fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-		GRect(22, -6, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
-		GTextAlignmentLeft, NULL);
+			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+			GRect(22, -6, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+			GTextAlignmentLeft, NULL);
 	graphics_draw_text(ctx, channel->unread_msg,
-		fonts_get_system_font(channel->unread == 0 ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_14_BOLD),
-		GRect(4, 20, PEBBLE_WIDTH - 8, 14),
-		GTextOverflowModeTrailingEllipsis,
-		GTextAlignmentLeft, NULL);
+			fonts_get_system_font(channel->unread == 0 ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_14_BOLD),
+			GRect(4, 20, PEBBLE_WIDTH - 8, 14),
+			GTextOverflowModeTrailingEllipsis,
+			GTextAlignmentLeft, NULL);
 }
 
 // Here we capture when a user selects a menu item
@@ -81,24 +81,19 @@ void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t 
 	graphics_context_set_text_color(ctx, GColorWhite);
 	graphics_fill_rect(ctx, layer_get_bounds(cell_layer), 0, GCornerNone);
 	graphics_draw_text(ctx, sectionTitles[section_index],
-		fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-		GRect(0, -2, PEBBLE_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
-		GTextAlignmentCenter, NULL);
+			fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+			GRect(0, -2, PEBBLE_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+			GTextAlignmentCenter, NULL);
 }
 
 void menu_layer_draw_separator_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
-	
+
 }
 
 // This initializes the menu upon window load
 void window_appear(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
-
-	// title_layer = title_layer_create(GRect(0,0,144,24), channelWindowTitle);
-	// 
-	// layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
-
 
 	// Create the menu layer
 	menu_layer = menu_layer_create(GRect(0,0,144,168));
@@ -138,9 +133,6 @@ void window_disappear(Window *window) {
 void window_unload(Window *window) {
 	window_destroy(window);
 }
-
-
-
 
 void channelwindow_create() {
 

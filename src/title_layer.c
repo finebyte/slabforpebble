@@ -11,43 +11,26 @@
 #include <pebble-assist.h>
 
 static void title_layer_update_proc(Layer *layer, GContext* ctx) {
-//		GRect b = layer_get_frame(layer);
 
-		GRect b = layer_get_bounds(layer);
+	GRect b = layer_get_bounds(layer);
 
-		TitleLayer *  title_layer = (TitleLayer*)(layer_get_data(layer));
+	TitleLayer *  title_layer = (TitleLayer*)(layer_get_data(layer));
 
-		graphics_context_set_stroke_color(ctx, GColorWhite);
+	graphics_context_set_stroke_color(ctx, GColorWhite);
 
-		graphics_context_set_fill_color(ctx, COLOR_SECONDARY);
-		graphics_fill_rect(ctx,GRect(b.origin.x,b.origin.y,b.size.w,b.size.h),0,GCornersAll);
+	graphics_context_set_fill_color(ctx, COLOR_SECONDARY);
+	graphics_fill_rect(ctx,GRect(b.origin.x,b.origin.y,b.size.w,b.size.h),0,GCornersAll);
 
-		graphics_context_set_text_color(ctx,GColorWhite);
-		// Draw the text
+	graphics_context_set_text_color(ctx,GColorWhite);
+	// Draw the text
 
-		graphics_draw_text(ctx, title_layer->icon,
+	graphics_draw_text(ctx, title_layer->icon,
 			fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(3, 2, 16, 16),
 			GTextOverflowModeFill, GTextAlignmentCenter, NULL);
-		graphics_draw_text(ctx, title_layer->title,
+	graphics_draw_text(ctx, title_layer->title,
 			fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
 			GRect(22, -2, PEBBLE_WIDTH - 24, 18), GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft, NULL);
-
-//
-//		graphics_draw_text(ctx,
-//				title_layer->title,
-//				fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
-//				b,
-//				GTextOverflowModeTrailingEllipsis,
-//				GTextAlignmentCenter,
-//				NULL);
-
-		// Draw the lines
-
-//		GPoint l = GPoint(b.origin.x,b.origin.y+b.size.h-1);
-//		GPoint r = GPoint(l.x+b.size.w,l.y);
-//		graphics_draw_line(ctx, l,r);
-//		graphics_draw_line(ctx, GPoint(l.x,l.y-3),GPoint(r.x,r.y-3));
 
 }
 
