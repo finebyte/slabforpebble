@@ -78,6 +78,19 @@ Channel.prototype.addMessage = function (message) {
   this.messages = _.take(this.messages, 100);
 };
 
+Channel.prototype.updateMessage = function (message) {
+  var msg = _.findLast(this.messages, function (m) {
+    return m.data.ts === message.message.ts;
+  });
+  msg.update(message.message);
+};
+
+Channel.prototype.deleteMessage = function (message) {
+  _.remove(this.messages, function (m) {
+    return m.data.ts === message.ts;
+  });
+};
+
 Channel.prototype.getMessages = function () {
   return this.messages;
 };

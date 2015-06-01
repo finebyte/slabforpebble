@@ -198,7 +198,15 @@ function rtmConnect(url) {
 
 function rtmMessage(data) {
   var channel = State.getChannel(data.channel);
-  channel.addMessage(data);
+  if (data.subtype === 'message_changed') {
+    channel.updateMessage(data);
+  }
+  else if (data.subtype === 'message_deleted') {
+    channel.deleteMessage(data);
+  }
+  else {
+    channel.addMessage(data);
+  }
   if (State.getActiveChannel() === channel.id) {
     if (sendMessageTimer) {
       clearTimeout(sendMessageTimer);

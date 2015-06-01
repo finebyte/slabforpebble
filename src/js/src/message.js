@@ -45,6 +45,10 @@ function Message(data) {
   this.data = data;
 }
 
+Message.prototype.update = function (data) {
+  this.data = data;
+};
+
 Message.prototype.serialize = function (callback) {
   var _this = this;
   var msg = [];
