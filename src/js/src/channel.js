@@ -82,7 +82,9 @@ Channel.prototype.updateMessage = function (message) {
   var msg = _.findLast(this.messages, function (m) {
     return m.data.ts === message.message.ts;
   });
-  msg.update(message.message);
+  if (msg) {
+    msg.update(message.message);
+  }
 };
 
 Channel.prototype.deleteMessage = function (message) {

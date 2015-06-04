@@ -378,19 +378,20 @@ function sendReplies() {
 
 function buildConfigUrl() {
   var watch = Pebble.getActiveWatchInfo();
-  console.log(JSON.stringify(watch));
   var query = [];
-  // query.push(['version', AppInfo.versionLabel]);
-  // query.push(['hardware_platform', watch ? watch.platform : 'aplite']);
-  // if (watch) {
-  //   query.push(['model', watch.model]);
-  //   query.push(['language', watch.language]);
-  //   query.push(['firmware', Utils.serializeFirmware(watch.firmware)]);
-  // }
-  // query.push(['account_token', Pebble.getAccountToken()]);
-  // if (getSlackToken() && getSlackToken().length) {
-  //   query.push(['slack_access_token', getSlackToken()]);
-  // }
+  query.push(['version', AppInfo.versionLabel]);
+  query.push(['hardware_platform', watch ? watch.platform : 'aplite']);
+  if (watch) {
+    query.push(['model', watch.model]);
+    query.push(['language', watch.language]);
+    query.push(['firmware', Utils.serializeFirmware(watch.firmware)]);
+  }
+  query.push(['account_token', Pebble.getAccountToken()]);
+  if (getSlackToken() && getSlackToken().length) {
+    query.push(['slack_access_token', getSlackToken()]);
+  }
+  var replies = store.get('replies', []);
+  query.push(['replies', JSON.stringify(replies)]);
   var queryString = query.map(function (q) { return q.join('='); }).join('&');
   return AppInfo.settings.configPage + '?' + queryString;
 }
