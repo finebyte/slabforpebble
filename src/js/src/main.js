@@ -397,7 +397,7 @@ function buildConfigUrl() {
 }
 
 function getSlackToken() {
-  if (typeof DEBUG_ACCESS_TOKEN !== 'undefined') {
+  if (typeof DEBUG_ACCESS_TOKEN === 'string' && DEBUG_ACCESS_TOKEN.length) {
     return DEBUG_ACCESS_TOKEN;
   }
   return store.get('slackAccessToken');
