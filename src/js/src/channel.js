@@ -89,7 +89,9 @@ Channel.prototype.updateMessage = function (message) {
 
 Channel.prototype.deleteMessage = function (message) {
   _.remove(this.messages, function (m) {
-    return m.data.ts === message.ts;
+    // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
+    return m.data.ts === message.deleted_ts;
+    // jscs:enable requireCamelCaseOrUpperCaseIdentifiers
   });
 };
 

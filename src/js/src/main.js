@@ -52,6 +52,7 @@ var sendMessageTimer = null;
 var quickRefreshChannel = null;
 var analytics = null;
 var rtmSocket = null;
+var firstMessage = false;
 
 Pebble.addEventListener('ready', function () {
   console.log('Ready!');
@@ -190,6 +191,8 @@ function rtmConnect(url) {
         break;
       case 'group_marked':
         break;
+      case 'file_change':
+        break;
       default:
         console.log(JSON.stringify(data));
     }
@@ -197,6 +200,11 @@ function rtmConnect(url) {
 }
 
 function rtmMessage(data) {
+  if (!firstMessage) {
+    console.log('Skipping the first message!');
+    firstMessage = true;
+    return;
+  }
   var channel = State.getChannel(data.channel);
   if (data.subtype === 'message_changed') {
     channel.updateMessage(data);
