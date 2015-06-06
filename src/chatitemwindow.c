@@ -59,9 +59,13 @@ static void chat_item_blob_update(Layer * layer, GContext * ctx) {
 // Here we capture when a user selects a menu item
 void chatitem_select_click(ClickRecognizerRef  ref, void *data) {
 	//	APP_LOG(APP_LOG_LEVEL_DEBUG,"You clicked sel on the chat_item");
-	static char replyToBuffer[100];
-	snprintf(replyToBuffer,100,"@%s: ", chat->name);
-	replywindow_create(myChan,replyToBuffer, get_myReplies());
+	if (myChan->id[0]=='D') {
+		replywindow_create(myChan,"", get_myReplies());
+	} else {
+		static char replyToBuffer[100];
+		snprintf(replyToBuffer,100,"@%s: ", chat->name);
+		replywindow_create(myChan,replyToBuffer, get_myReplies());
+	}
 	window_stack_remove(window,false);
 }
 
