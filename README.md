@@ -9,3 +9,8 @@ It is a collaboration between [finebyte](https://github.com/finebyte/) and [Matt
 [slack]: https://slack.com/
 [pebble]: https://pebble.com/
 [appstore-link]: https://apps.getpebble.com/applications/5561a6d9fd8f4b8de400004b
+
+To get around build issues...
+npm install
+touch src/js/src/debug.js
+echo #define VERSION_LABEL "1.0" > src/generated/appinfo.h

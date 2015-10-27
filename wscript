@@ -58,8 +58,30 @@ def distclean(ctx):
     except OSError:
         pass
 
+def generate_appinfo_h(task):
+    print("gen appinfo")
+    task.ext_out = '.c'
+
+    src = task.inputs[0].abspath()
+    target = task.outputs[0].abspath()
+    appinfo = json.load(open(src))
+
+    f = open(target, 'w')
+    write_comment_header(f, 'src/generated/appinfo.h', appinfo)
+    f.write('#pragma once\n\n')
+    f.write('#define VERSION_LABEL "{0}"\n'.format(appinfo['versionLabel']))
+    f.write('#define UUID "{0}"\n'.format(appinfo['uuid']))
+    for key in appinfo['appKeys']:
+        f.write('#define APP_KEY_{0} {1}\n'.format(key.upper(),
+                                                   appinfo['appKeys'][key]))
+    for key in appinfo['settings']:
+        f.write('#define SETTING_{0} {1}\n'.format(key.upper(),
+                                                   appinfo['settings'][key]))
+    f.close()
+
 
 def build(ctx):
+    print("building")
     ctx.load('pebble_sdk')
 
     js_sources = [
@@ -79,14 +101,13 @@ def build(ctx):
         js_sources.insert(0, '../src/js/src/debug.js');
 
     built_js = '../src/js/pebble-js-app.js'
-
+    print("1")
     # Generate appinfo.js
-    ctx(rule=generate_appinfo_js, source='../appinfo.json',
-        target='../src/js/src/generated/appinfo.js')
+    ctx(rule=generate_appinfo_js, source='../appinfo.json',target='../src/js/src/generated/appinfo.js')
 
     # Generate appinfo.h
-    ctx(rule=generate_appinfo_h, source='../appinfo.json',
-        target='../src/generated/appinfo.h')
+    ctx(rule=generate_appinfo_h, source='appinfo.json',target='../src/generated/appinfo.h')
+    print("2")
 
     # Run the C tests.
     # ctx(rule=make_test)
@@ -109,28 +130,11 @@ def build(ctx):
     rockit.build(ctx, built_js)
 
 
-def generate_appinfo_h(task):
-    task.ext_out = '.c'
-
-    src = task.inputs[0].abspath()
-    target = task.outputs[0].abspath()
-    appinfo = json.load(open(src))
-
-    f = open(target, 'w')
-    write_comment_header(f, 'src/generated/appinfo.h', appinfo)
-    f.write('#pragma once\n\n')
-    f.write('#define VERSION_LABEL "{0}"\n'.format(appinfo['versionLabel']))
-    f.write('#define UUID "{0}"\n'.format(appinfo['uuid']))
-    for key in appinfo['appKeys']:
-        f.write('#define APP_KEY_{0} {1}\n'.format(key.upper(),
-                                                   appinfo['appKeys'][key]))
-    for key in appinfo['settings']:
-        f.write('#define SETTING_{0} {1}\n'.format(key.upper(),
-                                                   appinfo['settings'][key]))
-    f.close()
 
 
 def generate_appinfo_js(task):
+    print("gen appinfo js")
+
     src = task.inputs[0].abspath()
     target = task.outputs[0].abspath()
     data = open(src).read().strip()
