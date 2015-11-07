@@ -13,7 +13,6 @@
 #include "chatwindow.h"
 #include "chatitemwindow.h"
 #include <font-loader.h>
-#include <pebble-assist.h>
 
 
 chan_info * myChan=NULL;
@@ -77,35 +76,76 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 
 	}
 
-if (cell_index->row==0) {
-	graphics_draw_text(ctx, row_0_txt,
-		fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-		GRect(6, 9, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
-		GTextAlignmentLeft, NULL);
-	graphics_draw_text(ctx, row_0_icon,
-		fonts_get_font(RESOURCE_ID_FONT_ICONS_24),
-		GRect(PEBBLE_WIDTH-28, 7, 24, 24),
-		GTextOverflowModeFill, GTextAlignmentCenter, NULL);
-	} else {
 
+
+
+#ifdef PBL_ROUND
+#define TIME_WIDTH 50
+    GTextAttributes *s_attributes
+    = graphics_text_attributes_create();
+    
+    // Enable text flow with an inset of 5 pixels
+    graphics_text_attributes_enable_screen_text_flow(s_attributes, 5);
+    if (cell_index->row==0) {
+        graphics_draw_text(ctx, row_0_txt,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                           GRect(6, 9, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentLeft, s_attributes);
+        graphics_draw_text(ctx, row_0_icon,
+                           fonts_get_font(RESOURCE_ID_FONT_ICONS_24),
+                           GRect(PEBBLE_WIDTH-28, 7, 24, 24),
+                           GTextOverflowModeFill, GTextAlignmentCenter, s_attributes);
+    } else {
+        // Create the attributes object used for text rendering
+        //
+        // time
+        graphics_draw_text(ctx, chat->time,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_18),
+                           GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentLeft, s_attributes);
+        
+        // name
+        graphics_draw_text(ctx, chat->name,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                           GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentLeft, s_attributes);
+
+        
+        graphics_draw_text(ctx, chat->msg,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+                           GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentLeft, s_attributes);
+#else
 #define TIME_WIDTH 35
-		// time
-		graphics_draw_text(ctx, chat->time,
-				fonts_get_system_font(FONT_KEY_GOTHIC_18),
-				GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
-				GTextAlignmentLeft, NULL);
+        if (cell_index->row==0) {
+            graphics_draw_text(ctx, row_0_txt,
+                               fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                               GRect(6, 9, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+                               GTextAlignmentLeft, NULL);
+            graphics_draw_text(ctx, row_0_icon,
+                               fonts_get_font(RESOURCE_ID_FONT_ICONS_24),
+                               GRect(PEBBLE_WIDTH-28, 7, 24, 24),
+                               GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+        } else {
 
-		// name
-		graphics_draw_text(ctx, chat->name,
-				fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-				GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
-				GTextAlignmentLeft, NULL);
+        // time
+        graphics_draw_text(ctx, chat->time,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_18),
+                           GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentLeft, NULL);
+        
+        // name
+        graphics_draw_text(ctx, chat->name,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                           GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentLeft, NULL);
+        //
+        graphics_draw_text(ctx, chat->msg,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+                           GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentLeft, NULL);
 
-		//
-		graphics_draw_text(ctx, chat->msg,
-				fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-				GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
-				GTextAlignmentLeft, NULL);
+#endif
 
 	}
 
@@ -169,12 +209,15 @@ void chat_appear(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
-	title_layer = title_layer_create(GRect(0,0,144,24), myChan->name, channel_icon_str(myChan));
+    int title_layer_height=TITLE_HEIGHT;
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG,"title layer h = %d",title_layer_height);
+	title_layer = title_layer_create(GRect(0,0,PEBBLE_WIDTH,title_layer_height), myChan->name, channel_icon_str(myChan));
 
 	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 
 	// Create the menu layer
-	menu_layer = menu_layer_create(GRect(0,24,144,144));
+	menu_layer = menu_layer_create(GRect(0,title_layer_height,PEBBLE_WIDTH,PEBBLE_HEIGHT-title_layer_height));
 
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){

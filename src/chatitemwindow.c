@@ -12,7 +12,6 @@
 #include "title_layer.h"
 #include "chatwindow.h"
 #include <font-loader.h>
-#include <pebble-assist.h>
 
 
 static Window *window=NULL;
@@ -29,7 +28,42 @@ static void chat_item_update(Layer * layer, GContext * ctx) {
 
 	graphics_context_set_text_color(ctx, GColorBlack);
 
+    
+#ifdef PBL_ROUND
+#define TIME_WIDTH 50
+
+    // Create the attributes object used for text rendering
+    GTextAttributes *s_attributes
+    = graphics_text_attributes_create();
+    
+    // Enable text flow with an inset of 5 pixels
+    graphics_text_attributes_enable_screen_text_flow(s_attributes, 5);
+
+    // Enable pagination with a fixed reference point and bounds, used for animating
+//    graphics_text_attributes_enable_paging(s_attributes, b.origin, b);
+    
+    // time
+    graphics_draw_text(ctx, chat->time,
+                       fonts_get_system_font(FONT_KEY_GOTHIC_18),
+                       GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+                       GTextAlignmentLeft, s_attributes);
+    
+    // name
+    graphics_draw_text(ctx, chat->name,
+                       fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                       GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
+                       GTextAlignmentLeft, s_attributes);
+    
+    //
+    graphics_draw_text(ctx, chat->msg,
+                       fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+                       GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
+                       GTextAlignmentLeft, s_attributes);
+
+
+#else
 #define TIME_WIDTH 35
+
 	// time
 	graphics_draw_text(ctx, chat->time,
 			fonts_get_system_font(FONT_KEY_GOTHIC_18),
@@ -47,13 +81,13 @@ static void chat_item_update(Layer * layer, GContext * ctx) {
 			fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
 			GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft, NULL);
-
+#endif
 
 }
 
 static void chat_item_blob_update(Layer * layer, GContext * ctx) {
 	graphics_context_set_fill_color(ctx, COLOR_PRIMARY);
-	graphics_fill_circle(ctx,GPoint(144,84),10);
+	graphics_fill_circle(ctx,GPoint(PEBBLE_WIDTH,84),10);
 }
 
 // Here we capture when a user selects a menu item
@@ -77,11 +111,11 @@ void chatitem_appear(Window *window) {
 
 	Layer * mainWindowLayer = window_get_root_layer(window);
 
-	chat_item_blob_layer = layer_create(GRect(0,0,144,168));
+	chat_item_blob_layer = layer_create(GRect(0,0,PEBBLE_WIDTH ,PEBBLE_HEIGHT));
 	layer_set_update_proc(chat_item_blob_layer, chat_item_blob_update);
 
 
-	title_layer = title_layer_create(GRect(0,0,144,24), myChan->name, channel_icon_str(myChan));
+	title_layer = title_layer_create(GRect(0,0,PEBBLE_WIDTH,TITLE_HEIGHT), myChan->name, channel_icon_str(myChan));
 
 	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 
@@ -93,10 +127,10 @@ void chatitem_appear(Window *window) {
 			GTextAlignmentLeft);
 
 
-	chat_item_layer = layer_create(GRect(0,0,144,2000));
+	chat_item_layer = layer_create(GRect(0,0,PEBBLE_WIDTH,2000));
 	layer_set_update_proc(chat_item_layer, chat_item_update);
 
-	scroll_layer = scroll_layer_create(GRect (0,24,144,144));
+	scroll_layer = scroll_layer_create(GRect (0,TITLE_HEIGHT,PEBBLE_WIDTH,PEBBLE_HEIGHT-TITLE_HEIGHT));
 
 	scroll_layer_set_content_size(scroll_layer, GSize(s.w,s.h+48));
 
@@ -110,6 +144,10 @@ void chatitem_appear(Window *window) {
 
 	layer_add_child(mainWindowLayer, scroll_layer_get_layer(scroll_layer));
 	layer_add_child(mainWindowLayer,chat_item_blob_layer);
+    
+#ifdef PBL_ROUND
+    scroll_layer_set_paging(scroll_layer, true);
+#endif
 
 }
 

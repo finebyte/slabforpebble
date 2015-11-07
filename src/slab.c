@@ -1,12 +1,10 @@
 #include <pebble.h>
-#include <pebble-assist.h>
 #include <font-loader.h>
 #include "channelwindow.h"
 #include "chatwindow.h"
 #include "util.h"
 #include "replywindow.h"
 #include "generated/appinfo.h"
-
 
 typedef enum {
     MODE_WAITING,
@@ -70,25 +68,35 @@ static void layer_update_proc(Layer* layer, GContext* ctx) {
     
     graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
     graphics_draw_text(ctx, icon, fonts_get_font(RESOURCE_ID_FONT_ICONS_32),
-                       GRect(58, 23, 32, 32), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+                       GRect(0, 23, PEBBLE_WIDTH, 32), GTextOverflowModeFill, GTextAlignmentCenter, NULL);
     graphics_draw_text(ctx, message,
                        fonts_get_system_font(FONT_KEY_GOTHIC_28_BOLD),
-                       GRect(8, 64, PEBBLE_WIDTH-16, 100), GTextOverflowModeWordWrap,
+                       GRect(10, 64, PEBBLE_WIDTH-10, 150), GTextOverflowModeWordWrap,
                        GTextAlignmentCenter, NULL);
-    
+#ifdef PBL_ROUND
+    graphics_context_set_fill_color(ctx, COLOR_SECONDARY);
+    graphics_fill_rect(ctx, GRect(0, PEBBLE_HEIGHT - 50, PEBBLE_WIDTH, 50), GCornerNone, 0);
+    char footer[16];
+    snprintf(footer, 16, "SLAB\n%s", VERSION_LABEL);
+    graphics_draw_text(ctx, footer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                       GRect(0, PEBBLE_HEIGHT - 50, PEBBLE_WIDTH, 50), GTextOverflowModeWordWrap,
+                       GTextAlignmentCenter, NULL);
+#else
     graphics_context_set_fill_color(ctx, COLOR_SECONDARY);
     graphics_fill_rect(ctx, GRect(0, PEBBLE_HEIGHT - 22, PEBBLE_WIDTH, 22), GCornerNone, 0);
     char footer[16];
     snprintf(footer, 16, "SLAB %s", VERSION_LABEL);
     graphics_draw_text(ctx, footer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-                       GRect(8, PEBBLE_HEIGHT - 24, PEBBLE_WIDTH - 16, 18), GTextOverflowModeFill,
+                       GRect(0, PEBBLE_HEIGHT - 24, PEBBLE_WIDTH, 18), GTextOverflowModeFill,
                        GTextAlignmentCenter, NULL);
+#endif
+    
 }
 
 static void window_load(Window *window) {
-    layer = layer_create_fullscreen(window);
+    layer=layer_create(layer_get_bounds(window_get_root_layer(window)));
     layer_set_update_proc(layer, layer_update_proc);
-    layer_add_to_window(layer, window);
+    layer_add_child(window_get_root_layer(window), layer);
     mode = MODE_WAITING;
     // splash = gbitmap_create_with_resource(RESOURCE_ID_SPLASH);
     // layer_bitmap = bitmap_layer_create(GRect(0, 0, 144, 168));

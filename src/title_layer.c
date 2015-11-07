@@ -8,7 +8,7 @@
 #include "pebble.h"
 #include "util.h"
 #include <font-loader.h>
-#include <pebble-assist.h>
+
 
 static void title_layer_update_proc(Layer *layer, GContext* ctx) {
 
@@ -23,6 +23,23 @@ static void title_layer_update_proc(Layer *layer, GContext* ctx) {
 
 	graphics_context_set_text_color(ctx,GColorWhite);
 	// Draw the text
+#ifdef PBL_ROUND
+    // Create the attributes object used for text rendering
+    GTextAttributes *s_attributes
+    = graphics_text_attributes_create();
+    
+    // Enable text flow with an inset of 5 pixels
+    graphics_text_attributes_enable_screen_text_flow(s_attributes, 5);
+
+    graphics_draw_text(ctx, title_layer->icon,
+                       fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(0, 2, PEBBLE_WIDTH, 16),
+                       GTextOverflowModeFill, GTextAlignmentCenter, NULL);
+    graphics_draw_text(ctx, title_layer->title,
+                       fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
+                       GRect(0, 16, PEBBLE_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
+                       GTextAlignmentCenter, s_attributes);
+
+#else
 
 	graphics_draw_text(ctx, title_layer->icon,
 			fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(3, 2, 16, 16),
@@ -31,7 +48,7 @@ static void title_layer_update_proc(Layer *layer, GContext* ctx) {
 			fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
 			GRect(22, -2, PEBBLE_WIDTH - 24, 18), GTextOverflowModeTrailingEllipsis,
 			GTextAlignmentLeft, NULL);
-
+#endif
 }
 
 TitleLayer* title_layer_create(GRect frame, char * t,  char * i) {

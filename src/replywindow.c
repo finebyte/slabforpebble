@@ -148,13 +148,13 @@ void replywindow_appear(Window *window) {
     static char titleText[40];
     snprintf(titleText,40,"Reply %s", rw->replyTo);
     
-    rw->title_layer = title_layer_create(GRect(0,0,144,24), titleText, ICON_CHAT);
+    rw->title_layer = title_layer_create(GRect(0,0,PEBBLE_WIDTH,TITLE_HEIGHT), titleText, ICON_CHAT);
     
     layer_add_child(mainWindowLayer,title_layer_get_layer(rw->title_layer));
     
     
     // Create the menu layer
-    rw->menu_layer = menu_layer_create(GRect(0,24,144,144));
+    rw->menu_layer = menu_layer_create(GRect(0,TITLE_HEIGHT,PEBBLE_WIDTH,PEBBLE_HEIGHT-TITLE_HEIGHT));
     
     // Set all the callbacks for the menu layer
     menu_layer_set_callbacks(rw->menu_layer, rw, (MenuLayerCallbacks){

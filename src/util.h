@@ -28,4 +28,14 @@ static char SEP[]={(char)0x7f, (char)0x00};
 #define COLOR_PRIMARY COLOR_FALLBACK(GColorBlue, GColorBlack)
 #define COLOR_SECONDARY COLOR_FALLBACK(GColorOxfordBlue, GColorBlack)
 
+#ifdef PBL_ROUND
+#define PEBBLE_WIDTH 180
+#define PEBBLE_HEIGHT 180
+#define TITLE_HEIGHT 40
+#else
+#define PEBBLE_WIDTH 144
+#define PEBBLE_HEIGHT 168
+#define TITLE_HEIGHT 24
+#endif
+
 #endif /* UTIL_H_ */
