@@ -182,7 +182,12 @@ void chat_select_long_callback(MenuLayer *menu_layer, MenuIndex *cell_index, voi
 
 
 int16_t chat_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
+#ifdef PBL_ROUND
+    return MENU_CELL_BASIC_HEADER_HEIGHT+5;
+#else
+
 	return MENU_CELL_BASIC_HEADER_HEIGHT;
+#endif
 }
 
 int16_t chat_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context){
@@ -214,10 +219,13 @@ void chat_appear(Window *window) {
     APP_LOG(APP_LOG_LEVEL_DEBUG,"title layer h = %d",title_layer_height);
 	title_layer = title_layer_create(GRect(0,0,PEBBLE_WIDTH,title_layer_height), myChan->name, channel_icon_str(myChan));
 
-	layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 
 	// Create the menu layer
-	menu_layer = menu_layer_create(GRect(0,title_layer_height,PEBBLE_WIDTH,PEBBLE_HEIGHT-title_layer_height));
+#ifdef PBL_ROUND
+    menu_layer = menu_layer_create(GRect(0,0,PEBBLE_WIDTH,PEBBLE_HEIGHT));
+#else
+    menu_layer = menu_layer_create(GRect(0,title_layer_height,PEBBLE_WIDTH,PEBBLE_HEIGHT-title_layer_height));
+#endif
 
 	// Set all the callbacks for the menu layer
 	menu_layer_set_callbacks(menu_layer, NULL, (MenuLayerCallbacks){
@@ -243,6 +251,7 @@ void chat_appear(Window *window) {
 
 	// Add it to the window for display
 	layer_add_child(mainWindowLayer, menu_layer_get_layer(menu_layer));
+    layer_add_child(mainWindowLayer,title_layer_get_layer(title_layer));
 }
 
 void chat_disappear(Window *window) {

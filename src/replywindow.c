@@ -133,6 +133,15 @@ void reply_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *d
     }
 }
 
+int16_t reply_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex* menu_index, void *callback_context) {
+#ifdef PBL_ROUND
+    return MENU_CELL_ROUND_FOCUSED_SHORT_CELL_HEIGHT;
+#else
+    return 44;
+#endif
+}
+
+
 int16_t reply_get_header_height_callback( MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
     return MENU_CELL_BASIC_HEADER_HEIGHT;
 }
@@ -146,22 +155,30 @@ void replywindow_appear(Window *window) {
     Layer * mainWindowLayer = window_get_root_layer(window);
     
     static char titleText[40];
+#ifdef PBL_ROUND
+    if ((rw->replyTo!=NULL) && (strlen(rw->replyTo) > 3)) {
+        snprintf(titleText,40,"%s", rw->replyTo);
+    } else {
+        snprintf(titleText,40,"Reply %s", rw->replyTo);        
+    }
+#else
     snprintf(titleText,40,"Reply %s", rw->replyTo);
-    
+#endif
     rw->title_layer = title_layer_create(GRect(0,0,PEBBLE_WIDTH,TITLE_HEIGHT), titleText, ICON_CHAT);
     
-    layer_add_child(mainWindowLayer,title_layer_get_layer(rw->title_layer));
-    
-    
     // Create the menu layer
+#ifdef PBL_ROUND
+    rw->menu_layer = menu_layer_create(GRect(0,0,PEBBLE_WIDTH,PEBBLE_HEIGHT));
+#else
     rw->menu_layer = menu_layer_create(GRect(0,TITLE_HEIGHT,PEBBLE_WIDTH,PEBBLE_HEIGHT-TITLE_HEIGHT));
-    
+#endif
     // Set all the callbacks for the menu layer
     menu_layer_set_callbacks(rw->menu_layer, rw, (MenuLayerCallbacks){
         .get_num_sections = reply_get_num_sections_callback,
         .get_num_rows = reply_get_num_rows_callback,
         .draw_row = reply_draw_row_callback,
         .select_click = reply_select_callback,
+        .get_cell_height = reply_get_cell_height_callback,
     });
     
 #ifdef PBL_COLOR
@@ -174,6 +191,7 @@ void replywindow_appear(Window *window) {
     
     // Add it to the window for display
     layer_add_child(mainWindowLayer, menu_layer_get_layer(rw->menu_layer));
+    layer_add_child(mainWindowLayer,title_layer_get_layer(rw->title_layer));
 }
 
 void replywindow_disappear(Window *window) {

@@ -39,8 +39,10 @@ static void chat_item_update(Layer * layer, GContext * ctx) {
     // Enable text flow with an inset of 5 pixels
     graphics_text_attributes_enable_screen_text_flow(s_attributes, 5);
 
-    // Enable pagination with a fixed reference point and bounds, used for animating
-//    graphics_text_attributes_enable_paging(s_attributes, b.origin, b);
+//    // Enable pagination with a fixed reference point and bounds, used for animating
+    graphics_text_attributes_enable_paging(s_attributes, layer_convert_point_to_screen(layer, GPoint(0,0)), layer_convert_rect_to_screen(scroll_layer_get_layer(scroll_layer), layer_get_bounds(scroll_layer_get_layer(scroll_layer))));
+
+
     
     // time
     graphics_draw_text(ctx, chat->time,
@@ -53,6 +55,7 @@ static void chat_item_update(Layer * layer, GContext * ctx) {
                        fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
                        GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
                        GTextAlignmentLeft, s_attributes);
+
     
     //
     graphics_draw_text(ctx, chat->msg,
