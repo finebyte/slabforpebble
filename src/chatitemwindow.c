@@ -56,12 +56,16 @@ static void chat_item_update(Layer * layer, GContext * ctx) {
                        GRect(4 + TIME_WIDTH, -3, PEBBLE_WIDTH-(TIME_WIDTH), 18), GTextOverflowModeTrailingEllipsis,
                        GTextAlignmentLeft, s_attributes);
 
+    graphics_text_attributes_enable_paging(s_attributes, layer_convert_point_to_screen(layer, GPoint(0,11)), layer_convert_rect_to_screen(scroll_layer_get_layer(scroll_layer), layer_get_bounds(scroll_layer_get_layer(scroll_layer))));
+
     
     //
     graphics_draw_text(ctx, chat->msg,
                        fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
                        GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
                        GTextAlignmentLeft, s_attributes);
+
+    graphics_text_attributes_destroy(s_attributes);
 
 
 #else

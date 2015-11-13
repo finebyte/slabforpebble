@@ -38,6 +38,8 @@ static void title_layer_update_proc(Layer *layer, GContext* ctx) {
                        fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
                        GRect(0, 16, PEBBLE_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
                        GTextAlignmentCenter, s_attributes);
+    graphics_text_attributes_destroy(s_attributes);
+
 
 #else
 

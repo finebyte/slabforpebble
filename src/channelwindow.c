@@ -16,11 +16,11 @@
 static Window *window=NULL;
 static MenuLayer *menu_layer;
 static TextLayer  * watchInfo;
-static TitleLayer * title_layer;
 static AppTimer * refresh_chan_timer=NULL;
 
 static MenuIndex current_item;
 
+extern void logComms(char * c, bool tx);
 
 char * sectionTitles[]={"STARRED","CHANNELS", "GROUPS", "DM" };
 chan_group channels[NUM_SECTIONS];
@@ -39,26 +39,72 @@ static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t secti
 
 // This is the menu item draw callback where you specify what each item should look like
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
+    
 #ifdef PBL_BW
     graphics_context_set_text_color(ctx, GColorBlack);
 #endif
+    
+    
+    
+    if (cell_index->section > NUM_SECTIONS) return;
+    if (cell_index->row > channels[cell_index->section].num) return;
+    
     chan_info* channel = &channels[cell_index->section].chans[cell_index->row];
     
     int left_pad=0;
+    
+    // Title and icon
 #ifdef PBL_ROUND
+    GTextAttributes *s_attributes
+    = graphics_text_attributes_create();
     
-    GSize icon_sz =  graphics_text_layout_get_content_size(channel_icon_str(channel),
-                                                           fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 16, 16),
-                                                           GTextOverflowModeFill, GTextAlignmentCenter);
+    // Enable text flow with an inset of 5 pixels
+    graphics_text_attributes_enable_screen_text_flow(s_attributes, 5);
     
-    GSize name_sz = graphics_text_layout_get_content_size(channel->name,
-                                                          fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-                                                          GRect(22, -6, PEBBLE_WIDTH - 24, 24),GTextOverflowModeTrailingEllipsis,
-                                                          GTextAlignmentLeft);
+    MenuIndex sel = menu_layer_get_selected_index(menu_layer);
     
-    left_pad = (PEBBLE_WIDTH-icon_sz.w-name_sz.w)/2;
-#endif
+    if ((sel.section==cell_index->section) && (sel.row==cell_index->row)) {
+        
+        graphics_draw_text(ctx, channel_icon_str(channel),
+                           fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, PEBBLE_WIDTH-4, 16),
+                           GTextOverflowModeFill, GTextAlignmentCenter, s_attributes);
+        
+        graphics_draw_text(ctx, channel->name,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+                           GRect(4, 14, PEBBLE_WIDTH - 4, 24), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentCenter, s_attributes);
+
+        graphics_draw_text(ctx, channel->unread_msg,
+                           fonts_get_system_font(channel->unread == 0 ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_14_BOLD),
+                           GRect(4, 36, PEBBLE_WIDTH - 4 - left_pad, 14),
+                           GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentCenter, s_attributes);
+        
+        
+//        graphics_draw_text(ctx, channel_icon_str(channel),
+//                           fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4, 4, 16, 16),
+//                           GTextOverflowModeFill, GTextAlignmentCenter, s_attributes);
+//        
+//        graphics_draw_text(ctx, channel->name,
+//                           fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+//                           GRect(24, -6, PEBBLE_WIDTH - 24, 24), GTextOverflowModeTrailingEllipsis,
+//                           GTextAlignmentLeft, s_attributes);
+    } else {
+        graphics_draw_text(ctx, channel->name,
+                           fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+                           GRect(4, -6, PEBBLE_WIDTH - 4, 24), GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentCenter, s_attributes);
+        
+        graphics_draw_text(ctx, channel->unread_msg,
+                           fonts_get_system_font(channel->unread == 0 ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_14_BOLD),
+                           GRect(4, 20, PEBBLE_WIDTH - 4 - left_pad, 14),
+                           GTextOverflowModeTrailingEllipsis,
+                           GTextAlignmentCenter, s_attributes);
+    }
+
     
+    graphics_text_attributes_destroy(s_attributes);
+#else
     graphics_draw_text(ctx, channel_icon_str(channel),
                        fonts_get_font(RESOURCE_ID_FONT_ICONS_16), GRect(4+left_pad, 4, 16, 16),
                        GTextOverflowModeFill, GTextAlignmentCenter, NULL);
@@ -67,19 +113,15 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
                        fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
                        GRect(22+left_pad, -6, PEBBLE_WIDTH - 24- left_pad, 24), GTextOverflowModeTrailingEllipsis,
                        GTextAlignmentLeft, NULL);
-#ifdef PBL_ROUND
-    GSize unread_sz = graphics_text_layout_get_content_size(channel->unread_msg,
-                                                            fonts_get_system_font(channel->unread == 0 ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_14_BOLD),
-                                                            GRect(4, 20, PEBBLE_WIDTH - 8, 14),
-                                                            GTextOverflowModeTrailingEllipsis,
-                                                            GTextAlignmentLeft);
-    left_pad = (PEBBLE_WIDTH-unread_sz.w)/2;
-#endif
+    
     graphics_draw_text(ctx, channel->unread_msg,
                        fonts_get_system_font(channel->unread == 0 ? FONT_KEY_GOTHIC_14 : FONT_KEY_GOTHIC_14_BOLD),
                        GRect(4+left_pad, 20, PEBBLE_WIDTH - 8 - left_pad, 14),
                        GTextOverflowModeTrailingEllipsis,
                        GTextAlignmentLeft, NULL);
+#endif
+    
+    
 }
 
 // Here we capture when a user selects a menu item
@@ -97,7 +139,13 @@ int16_t menu_get_header_height_callback( MenuLayer *menu_layer, uint16_t section
 }
 
 int16_t menu_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-    return 40;
+    MenuIndex sel = menu_layer_get_selected_index(menu_layer);
+    
+    if ((sel.section==cell_index->section) && (sel.row==cell_index->row)) {
+        return 60;
+    }else {
+        return 40;
+    }
 }
 
 void menu_draw_header_callback(GContext *ctx, const Layer *cell_layer, uint16_t section_index, void *callback_context) {

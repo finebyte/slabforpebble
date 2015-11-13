@@ -104,6 +104,7 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
                            GRect(4, -3, TIME_WIDTH, 18), GTextOverflowModeTrailingEllipsis,
                            GTextAlignmentLeft, s_attributes);
         
+        
         // name
         graphics_draw_text(ctx, chat->name,
                            fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
@@ -115,6 +116,8 @@ static void chat_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
                            fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
                            GRect(4, 11, PEBBLE_WIDTH - 8, b.size.h-10), GTextOverflowModeTrailingEllipsis,
                            GTextAlignmentLeft, s_attributes);
+        graphics_text_attributes_destroy(s_attributes);
+
 #else
 #define TIME_WIDTH 35
         if (cell_index->row==0) {
@@ -216,7 +219,6 @@ void chat_appear(Window *window) {
 
     int title_layer_height=TITLE_HEIGHT;
 
-    APP_LOG(APP_LOG_LEVEL_DEBUG,"title layer h = %d",title_layer_height);
 	title_layer = title_layer_create(GRect(0,0,PEBBLE_WIDTH,title_layer_height), myChan->name, channel_icon_str(myChan));
 
 
