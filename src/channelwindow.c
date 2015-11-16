@@ -139,8 +139,8 @@ int16_t menu_get_header_height_callback( MenuLayer *menu_layer, uint16_t section
 }
 
 int16_t menu_get_cell_height_callback( MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
-    MenuIndex sel = menu_layer_get_selected_index(menu_layer);
 #ifdef PBL_ROUND
+    MenuIndex sel = menu_layer_get_selected_index(menu_layer);
     if ((sel.section==cell_index->section) && (sel.row==cell_index->row)) {
         return 60;
     }else {
