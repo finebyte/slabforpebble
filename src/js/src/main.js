@@ -35,7 +35,7 @@ src/js/src/main.js
 var AppInfo = require('./generated/appinfo');
 var Analytics = require('../libs/pebble-ga');
 var async = require('async');
-var DEBUG_ACCESS_TOKEN = require('./debug');
+var DEBUG_ACCESS_TOKEN; //require('./debug');
 var MessageQueue = require('../libs/message-queue');
 var Slack = require('./slack');
 var Errors = require('./errors');
