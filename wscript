@@ -1,4 +1,9 @@
 #
+# WARNING: This wscript does not follow good practices and should not be copied
+# or reproduced in your own projects.
+#
+#
+#
 # Slab v1.0
 #
 # ----------------------
