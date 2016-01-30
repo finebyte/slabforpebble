@@ -141,6 +141,12 @@ Message.prototype.getTime = function () {
 Message.prototype.getText = function (callback) {
   var text = this.data.text;
 
+  // Need to check text is not undefined
+  // HACK - return an empty string here...
+  if (text === undefined) {
+    return callback(null, '');
+  }
+
   var emojiMatches = text.match(/(\:[a-z\_]+\:)/g);
   if (emojiMatches) {
     emojiMatches.forEach(function (match) {
