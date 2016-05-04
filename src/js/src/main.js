@@ -70,7 +70,8 @@ Pebble.addEventListener('ready', function () {
 });
 
 Pebble.addEventListener('showConfiguration', function () {
-  Pebble.openURL(buildConfigUrl());
+  var url = encodeURI(buildConfigUrl());
+  Pebble.openURL(url);
 });
 
 Pebble.addEventListener('webviewclosed', function (event) {
@@ -78,7 +79,7 @@ Pebble.addEventListener('webviewclosed', function (event) {
     return;
   }
   try {
-    var config = JSON.parse(event.response);
+    var config = JSON.parse(decodeURIComponent(event.response));
     var newToken = getSlackToken() !== config.accessToken;
     if (newToken) {
       Slack.setAccessToken(config.accessToken);
