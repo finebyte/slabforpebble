@@ -183,6 +183,9 @@ void replywindow_appear(Window *window) {
     
 #ifdef PBL_COLOR
     menu_layer_set_highlight_colors(rw->menu_layer,COLOR_PRIMARY,GColorWhite);
+#else
+    menu_layer_set_highlight_colors(rw->menu_layer, GColorLightGray, GColorWhite);
+
 #endif
     
     

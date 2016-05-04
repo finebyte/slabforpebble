@@ -42,6 +42,13 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
     
 #ifdef PBL_BW
     graphics_context_set_text_color(ctx, GColorBlack);
+// Use code below for invert rather than highlight in BW
+    //    if (menu_cell_layer_is_highlighted(cell_layer)) {
+//        graphics_context_set_text_color(ctx, GColorWhite);
+//        
+//    } else {
+//    graphics_context_set_text_color(ctx, GColorBlack);
+//    }
 #endif
     
     
@@ -187,6 +194,8 @@ void window_appear(Window *window) {
     
 #ifdef PBL_COLOR
     menu_layer_set_highlight_colors(menu_layer,COLOR_PRIMARY,GColorWhite);
+#else
+    menu_layer_set_highlight_colors(menu_layer,GColorLightGray,GColorWhite);
 #endif
     
     // Bind the menu layer's click config provider to the window for interactivity

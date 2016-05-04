@@ -249,6 +249,9 @@ void chat_appear(Window *window) {
 
 #ifdef PBL_COLOR
 	menu_layer_set_highlight_colors(menu_layer, COLOR_PRIMARY, GColorWhite);
+#else
+    menu_layer_set_highlight_colors(menu_layer, GColorLightGray, GColorWhite);
+    
 #endif
 
 	// Add it to the window for display
