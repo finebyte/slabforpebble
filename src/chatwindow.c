@@ -348,7 +348,7 @@ void chatwindow_update() {
 
 void addMessages(char * v, int id) {
 
-	APP_LOG(APP_LOG_LEVEL_DEBUG,"addmessages %s", v);
+//	APP_LOG(APP_LOG_LEVEL_DEBUG,"addmessages %s", v);
 	delMessages();
 	if (v!=NULL) {
 		char * tok = strtok(v,SEP);
