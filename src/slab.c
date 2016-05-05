@@ -6,6 +6,8 @@
 #include "replywindow.h"
 #include "generated/appinfo.h"
 
+#define BUFFER_SIZE 1000
+
 typedef enum {
     MODE_WAITING,
     MODE_ERROR,
@@ -126,7 +128,7 @@ static void window_unload(Window *w) {
 
 void sendBufferSize() {
     char bufsize[20];
-    snprintf(bufsize,20,"%lu",app_message_inbox_size_maximum());
+    snprintf(bufsize,20,"%d",BUFFER_SIZE);
     sendCommand("BUFFER",bufsize);
 }
 
@@ -274,7 +276,7 @@ static void init(void) {
     fonts_init();
     
 //    app_message_open(app_message_inbox_size_maximum(),app_message_outbox_size_maximum());
-    app_message_open(1000,1000);
+    app_message_open(BUFFER_SIZE,BUFFER_SIZE);
     app_message_register_inbox_received(rcv);
     app_message_register_inbox_dropped(dropped);
     app_message_register_outbox_failed(send_failed);
