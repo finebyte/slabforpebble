@@ -4,7 +4,7 @@
     "longName": "Slab",
     "companyName": "finebyte",
     "versionCode": 1,
-    "versionLabel": "1.2",
+    "versionLabel": "1.3",
     "sdkVersion": "3",
     "targetPlatforms": ["aplite", "basalt", "chalk"],
     "watchapp": {
@@ -50,6 +50,7 @@
     "settings": {
         "delimiter": 127,
         "configPage": "https://slab-for-pebble.herokuapp.com/config/",
+        "configPage_dev": "http://localhost:9990/config/",
         "errorUrl": "https://slab-for-pebble.herokuapp.com/error/",
         "googleAnalyticsId": "UA-48246810-5"
     }
