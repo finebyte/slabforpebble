@@ -201,10 +201,11 @@ function rtmConnect(url) {
 }
 
 function rtmMessage(data) {
+    
   if (!firstMessage) {
-    console.log('Skipping the first message!');
+    console.log('Would skip the first message!' + JSON.stringify(data));
     firstMessage = true;
-    return;
+//    return;
   }
   var channel = State.getChannel(data.channel);
   if (data.subtype === 'message_changed') {
